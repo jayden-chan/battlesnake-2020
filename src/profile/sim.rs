@@ -219,6 +219,8 @@ impl Sim {
                     .any(|(id, sn)| *id != s.id && sn.body.len() >= s.body.len() - 2)
             {
                 (foods * 300.0)
+            } else if st.board.snakes.len() == 1 {
+                0.0
             } else {
                 (foods * 1.7)
             };
