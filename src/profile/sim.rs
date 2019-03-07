@@ -127,14 +127,17 @@ impl Profile for Sim {
                 return **dir;
             }
 
-            if idx + 1 < scores_vec.len()
-                && scores_vec[idx + 1]
-                    .0
-                    .is_safety_index(&s, &st, &SafetyIndex::Safe)
-                && *scores_vec[idx + 1].1 > **score - (**score / 3.3).abs()
-            {
-                warn!("SKIPPED MOVE {:?} AT RANK {}", dir, idx + 1);
-                continue;
+            if idx + 1 < scores_vec.len() {
+                let (next_best_move, next_bext_score, _) = scores_vec[idx + 1];
+                if next_best_move.is_safety_index(&s, &st, &SafetyIndex::Safe)
+                    && *next_bext_score > **score - (**score / 3.3).abs()
+                    && !next_best_move.is_corner_risky(&s, &st)
+                    && !(!s.body[0].is_outer(&st)
+                        && next_best_move.resulting_point(s.body[0]).is_outer(&st))
+                {
+                    warn!("SKIPPED MOVE {:?} AT RANK {}", dir, idx + 1);
+                    continue;
+                }
             } else {
                 warn!(
                     "NEXT BEST MOVE NOT GOOD ENOUGH, RETURNING RISKY MOVE OF RANK {:?}",
