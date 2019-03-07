@@ -87,17 +87,27 @@ impl Point {
         self.in_bounds(st)
     }
 
+    pub fn is_blocked(self, st: &State) -> bool {
+        for (_, snake) in &st.board.snakes {
+            if snake.body.iter().skip(1).any(|p| *p == self) {
+                return false;
+            }
+        }
+
+        self.in_bounds(st)
+    }
+
     /// Returns the safety index of self.
     ///
     /// Safe: Empty point, in bounds, no snakes adjacent
     /// Risky: Empty point, in bounds, larger snake adjacent
     /// Unsafe: Occupied or OOB
     pub fn safety_index(self, s: &Snake, st: &State) -> SafetyIndex {
-        for snake in &st.board.snakes {
-            if snake.1.body.iter().any(|p| *p == self) {
-                let len = snake.1.body.len();
+        for (id, snake) in &st.board.snakes {
+            if snake.body.iter().any(|p| *p == self) {
+                let len = snake.body.len();
 
-                if self != snake.1.body[len - 1] || snake.1.body[len - 1] == snake.1.body[len - 2] {
+                if self != snake.body[len - 1] || snake.body[len - 1] == snake.body[len - 2] {
                     return SafetyIndex::Unsafe;
                 }
             }
@@ -105,8 +115,8 @@ impl Point {
             let contains = self
                 .orthogonal()
                 .iter()
-                .any(|p| p.y == snake.1.body[0].y && p.x == snake.1.body[0].x);
-            if snake.0 != &s.id && contains && snake.1.body.len() >= s.body.len() {
+                .any(|p| p.y == snake.body[0].y && p.x == snake.body[0].x);
+            if id != &s.id && contains && snake.body.len() >= s.body.len() {
                 return SafetyIndex::Risky;
             }
         }
