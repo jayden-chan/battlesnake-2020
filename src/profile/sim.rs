@@ -127,7 +127,7 @@ impl Profile for Sim {
                 return **dir;
             }
 
-            if idx + 1 < scores_vec.len() {
+            while idx + 1 < scores_vec.len() {
                 let (next_best_move, next_bext_score, next_best_len) = scores_vec[idx + 1];
 
                 if next_best_move.is_safety_index(&s, &st, &SafetyIndex::Safe)
@@ -143,7 +143,7 @@ impl Profile for Sim {
             }
 
             warn!(
-                "NEXT BEST MOVE NOT GOOD ENOUGH, RETURNING RISKY MOVE OF RANK {:?}",
+                "NEXT BEST MOVES NOT GOOD ENOUGH, RETURNING RISKY MOVE OF RANK {:?}",
                 idx + 1
             );
 
