@@ -25,8 +25,8 @@ use log::info;
 use super::game::{Dir, State};
 use super::profile::{string_to_profile, Profile};
 
-const MATCH_THRESH: usize = 5;
-const MOVE_BUFFER_SIZE: usize = 5;
+const MATCH_THRESH: usize = 9;
+const MOVE_BUFFER_SIZE: usize = 10;
 
 /// The Analytics struct holds information for the analyzer
 /// as well as any matches it finds
