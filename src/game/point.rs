@@ -122,6 +122,11 @@ impl Point {
     pub fn in_bounds(self, st: &State) -> bool {
         self.x < st.board.width && self.x >= 0 && self.y < st.board.height && self.y >= 0
     }
+
+    /// Returns whther the point is on the outer edge of the board
+    pub fn is_outer(self, st: &State) -> bool {
+        self.x == 1 || self.x == st.board.width - 1 || self.y == 1 || self.y == st.board.height - 1
+    }
 }
 
 // Implement methods for A*
