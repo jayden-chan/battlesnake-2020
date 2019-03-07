@@ -125,7 +125,7 @@ impl Point {
 
     /// Returns whther the point is on the outer edge of the board
     pub fn is_outer(self, st: &State) -> bool {
-        self.x == 1 || self.x == st.board.width - 1 || self.y == 1 || self.y == st.board.height - 1
+        self.x == 0 || self.x == st.board.width - 1 || self.y == 0 || self.y == st.board.height - 1
     }
 }
 
