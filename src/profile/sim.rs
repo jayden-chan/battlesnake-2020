@@ -120,9 +120,8 @@ impl Profile for Sim {
         // info!("Dir scores: {:#?}", scores_vec);
 
         'outer: for (idx, (dir, score, len)) in scores_vec.iter().enumerate() {
-            if dir.is_safety_index(&s, &st, &SafetyIndex::Safe)
-                && !dir.is_corner_risky(&s, &st)
-                && !(!s.body[0].is_outer(&st) && dir.resulting_point(s.body[0]).is_outer(&st))
+            if dir.is_safety_index(&s, &st, &SafetyIndex::Safe) && !dir.is_corner_risky(&s, &st)
+            // && !(!s.body[0].is_outer(&st) && dir.resulting_point(s.body[0]).is_outer(&st))
             {
                 return **dir;
             }
@@ -135,8 +134,8 @@ impl Profile for Sim {
                     && *next_bext_score > **score - (**score / 2.5).abs()
                     && *next_best_len > **len - (**len / 2)
                     && !next_best_move.is_corner_risky(&s, &st)
-                    && !(!s.body[0].is_outer(&st)
-                        && next_best_move.resulting_point(s.body[0]).is_outer(&st))
+                // && !(!s.body[0].is_outer(&st)
+                //     && next_best_move.resulting_point(s.body[0]).is_outer(&st))
                 {
                     warn!("SKIPPED MOVE {:?} AT RANK {}", dir, idx_tmp + 1);
                     continue 'outer;
@@ -212,6 +211,7 @@ impl Sim {
         for branch in &self.branches {
             let mut dead: f64 = 0.0;
             let mut foods: f64 = 0.0;
+            let dir = branch.futures[0].dir;
 
             let future_length = branch.futures.len();
 
@@ -225,6 +225,7 @@ impl Sim {
 
             let length_score = ((future_length as f64) - 30.0) * 1.5;
             let death_score = dead * 30.0;
+
             let food_score = if st.board.snakes.len() == 2
                 && st
                     .board
@@ -247,16 +248,20 @@ impl Sim {
                 }
             }
 
+            if !s.body[0].is_outer(&st) && dir.resulting_point(s.body[0]).is_outer(&st) {
+                total *= 0.8;
+            }
+
             debug!(
                 "Future length: {:04} Foods: {:02} First move: {:?}",
-                future_length, foods, branch.futures[0].dir
+                future_length, foods, dir
             );
 
-            if let Some((score, len)) = scores.get_mut(&branch.futures[0].dir) {
+            if let Some((score, len)) = scores.get_mut(&dir) {
                 *score += total;
                 *len += future_length;
             } else {
-                scores.insert(branch.futures[0].dir, (total, future_length));
+                scores.insert(dir, (total, future_length));
             }
         }
 
