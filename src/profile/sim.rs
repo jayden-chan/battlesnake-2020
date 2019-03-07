@@ -138,14 +138,14 @@ impl Profile for Sim {
                     warn!("SKIPPED MOVE {:?} AT RANK {}", dir, idx + 1);
                     continue;
                 }
-            } else {
-                warn!(
-                    "NEXT BEST MOVE NOT GOOD ENOUGH, RETURNING RISKY MOVE OF RANK {:?}",
-                    idx + 1
-                );
-
-                return **dir;
             }
+
+            warn!(
+                "NEXT BEST MOVE NOT GOOD ENOUGH, RETURNING RISKY MOVE OF RANK {:?}",
+                idx + 1
+            );
+
+            return **dir;
         }
 
         s.find_safe_move(&st)
