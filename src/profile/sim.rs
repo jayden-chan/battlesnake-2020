@@ -119,7 +119,7 @@ impl Profile for Sim {
 
         // info!("Dir scores: {:#?}", scores_vec);
 
-        'outer: for (mut idx, (dir, score, len)) in scores_vec.iter().enumerate() {
+        'outer: for (idx, (dir, score, len)) in scores_vec.iter().enumerate() {
             if dir.is_safety_index(&s, &st, &SafetyIndex::Safe)
                 && !dir.is_corner_risky(&s, &st)
                 && !(!s.body[0].is_outer(&st) && dir.resulting_point(s.body[0]).is_outer(&st))
@@ -127,21 +127,22 @@ impl Profile for Sim {
                 return **dir;
             }
 
-            while idx + 1 < scores_vec.len() {
-                let (next_best_move, next_bext_score, next_best_len) = scores_vec[idx + 1];
+            let mut idx_tmp = idx;
+            while idx_tmp + 1 < scores_vec.len() {
+                let (next_best_move, next_bext_score, next_best_len) = scores_vec[idx_tmp + 1];
 
                 if next_best_move.is_safety_index(&s, &st, &SafetyIndex::Safe)
-                    && *next_bext_score > **score - (**score / 3.3).abs()
-                    && *next_best_len > **len - (**len / 3)
+                    && *next_bext_score > **score - (**score / 2.5).abs()
+                    && *next_best_len > **len - (**len / 2)
                     && !next_best_move.is_corner_risky(&s, &st)
                     && !(!s.body[0].is_outer(&st)
                         && next_best_move.resulting_point(s.body[0]).is_outer(&st))
                 {
-                    warn!("SKIPPED MOVE {:?} AT RANK {}", dir, idx + 1);
+                    warn!("SKIPPED MOVE {:?} AT RANK {}", dir, idx_tmp + 1);
                     continue 'outer;
                 }
 
-                idx += 1;
+                idx_tmp += 1;
             }
 
             warn!(
