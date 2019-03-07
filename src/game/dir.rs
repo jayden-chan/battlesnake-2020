@@ -222,16 +222,14 @@ impl Dir {
             }
         }
 
-        for (id, snake) in &st.board.snakes {
-            if *id == s.id {
-                continue;
-            }
-
+        for (_, snake) in &st.board.snakes {
             for point in &snake.body {
-                if diagonal_points.iter().any(|p| *p == *point) {
-                    return false;
-                }
+                diagonal_points.retain(|p| *p != *point)
             }
+        }
+
+        if diagonal_points.len() == 0 {
+            return false;
         }
 
         for (id, snake) in &st.board.snakes {
