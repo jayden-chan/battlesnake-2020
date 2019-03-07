@@ -35,21 +35,23 @@ pub struct Aggressive {
 impl Profile for Aggressive {
     fn get_move(&mut self, s: &Snake, st: &State) -> Dir {
         if let Some(nearest_snake) = s.nearest_snake(&st) {
-            let dest_point = nearest_snake
-                .find_safe_move(st)
-                .resulting_point(nearest_snake.body[0]);
-            let result = astar(
-                &s.body[0],
-                |p| p.successors(&s, &st),
-                |p| p.manhattan(dest_point),
-                |p| *p == dest_point,
-            );
+            if nearest_snake.body.len() < s.body.len() {
+                let dest_point = nearest_snake
+                    .find_safe_move(st)
+                    .resulting_point(nearest_snake.body[0]);
+                let result = astar(
+                    &s.body[0],
+                    |p| p.successors(&s, &st),
+                    |p| p.manhattan(dest_point),
+                    |p| *p == dest_point,
+                );
 
-            if let Some((path, len)) = result {
-                if len > 0 {
-                    if let Some(dir) = s.body[0].dir_to(path[1]) {
-                        if dir.is_safety_index(&s, &st, &SafetyIndex::Safe) {
-                            return dir;
+                if let Some((path, len)) = result {
+                    if len > 0 {
+                        if let Some(dir) = s.body[0].dir_to(path[1]) {
+                            if dir.is_safety_index(&s, &st, &SafetyIndex::Safe) {
+                                return dir;
+                            }
                         }
                     }
                 }
