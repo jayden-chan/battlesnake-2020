@@ -127,6 +127,7 @@ impl Profile for Sim {
                 return **dir;
             }
 
+            let mut idx = idx;
             while idx + 1 < scores_vec.len() {
                 let (next_best_move, next_bext_score, next_best_len) = scores_vec[idx + 1];
 
@@ -140,6 +141,8 @@ impl Profile for Sim {
                     warn!("SKIPPED MOVE {:?} AT RANK {}", dir, idx + 1);
                     continue;
                 }
+
+                idx += 1;
             }
 
             warn!(
