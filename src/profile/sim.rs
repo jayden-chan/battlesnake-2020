@@ -150,7 +150,7 @@ impl Profile for Sim {
     }
 
     fn init(&mut self, st: &State, self_id: String) {
-        let self_profiles = vec!["astarbasic", "cautious", "straight", "aggressive"];
+        let self_profiles = vec!["astarbasic", "cautious", "straight"];
         let enemy_profiles = vec!["astarbasic", "cautious", "straight", "aggressive"];
         let prefixes = vec![Dir::Up, Dir::Down, Dir::Left, Dir::Right];
 
