@@ -242,12 +242,12 @@ impl Dir {
             if snake.body.len() >= s.body.len() {
                 if outer_points[0] == snake.body[0] || outer_points[1] == snake.body[0] {
                     info!("returning safety_index from corner adj");
-                    return diagonal_points[1].safety_index(s, st) == SafetyIndex::Unsafe;
+                    return blocker_points[1].safety_index(s, st) == SafetyIndex::Unsafe;
                 }
 
                 if outer_points[2] == snake.body[0] || outer_points[3] == snake.body[0] {
                     info!("returning safety_index from corner adj");
-                    return diagonal_points[0].safety_index(s, st) == SafetyIndex::Unsafe;
+                    return blocker_points[0].safety_index(s, st) == SafetyIndex::Unsafe;
                 }
             }
         }
