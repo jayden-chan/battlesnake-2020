@@ -229,6 +229,7 @@ impl Dir {
         }
 
         if diagonal_points.len() == 0 {
+            info!("All points are occupied, returning false");
             return false;
         }
 
@@ -250,6 +251,7 @@ impl Dir {
             }
         }
 
+        info!("reached end, returning false");
         false
     }
 }
