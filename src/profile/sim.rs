@@ -131,7 +131,7 @@ impl Profile for Sim {
                 && scores_vec[idx + 1]
                     .0
                     .is_safety_index(&s, &st, &SafetyIndex::Safe)
-                && *scores_vec[idx + 1].1 > **score - (**score / 2.0).abs()
+                && *scores_vec[idx + 1].1 > **score - (**score / 3.3).abs()
             {
                 warn!("SKIPPED MOVE {:?} AT RANK {}", dir, idx + 1);
                 continue;
