@@ -228,6 +228,8 @@ impl Dir {
             }
         }
 
+        diagonal_points.retain(|p| p.in_bounds(&st));
+
         if diagonal_points.len() == 0 {
             info!("All points are occupied, returning false");
             return false;
