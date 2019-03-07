@@ -119,7 +119,7 @@ impl Profile for Sim {
 
         // info!("Dir scores: {:#?}", scores_vec);
 
-        for (idx, (dir, score, len)) in scores_vec.iter().enumerate() {
+        'outer: for (mut idx, (dir, score, len)) in scores_vec.iter().enumerate() {
             if dir.is_safety_index(&s, &st, &SafetyIndex::Safe)
                 && !dir.is_corner_risky(&s, &st)
                 && !(!s.body[0].is_outer(&st) && dir.resulting_point(s.body[0]).is_outer(&st))
@@ -127,7 +127,6 @@ impl Profile for Sim {
                 return **dir;
             }
 
-            let mut idx = idx;
             while idx + 1 < scores_vec.len() {
                 let (next_best_move, next_bext_score, next_best_len) = scores_vec[idx + 1];
 
@@ -139,7 +138,7 @@ impl Profile for Sim {
                         && next_best_move.resulting_point(s.body[0]).is_outer(&st))
                 {
                     warn!("SKIPPED MOVE {:?} AT RANK {}", dir, idx + 1);
-                    continue;
+                    continue 'outer;
                 }
 
                 idx += 1;
