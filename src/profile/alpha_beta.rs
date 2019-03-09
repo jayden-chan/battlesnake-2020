@@ -62,17 +62,18 @@ impl AlphaBeta {
         }
     }
 
-    //This recursive function simulates our snake and the enemy snake taking turns, with the
-    //final nodes being the scores at the current board states.
-    //
-    //'self_id' - The ID of the snake currently running this profile.
-    //'enemy_id' - The ID of the snake not running this profile. If there are more than two snakes it
-    //will be a random snake that is not running this profile.
-    //'depth' - The current recursive depth.
-    //'st' - The current state of the board which moves will be made from.
-    //'maximizing_player' - Boolean that is true when it is our turn and false when it is the enemies.
-    //'alpha' - The current best score attained anywhere in the tree
-    //'beta' - The current worst score found anywhere in the three.
+   ///This recursive function simulates our snake and the enemy snake taking turns, with the
+   ///final nodes being the scores at the current board states.
+   ///
+   /// # Arguments
+   ///`self_id` - The ID of the snake currently running this profile.
+   ///`enemy_id` - The ID of the snake not running this profile. If there are more than two snakes it
+   ///will be a random snake that is not running this profile.
+   ///`depth` - The current recursive depth.
+   ///`st` - The current state of the board which moves will be made from.
+   ///`maximizing_player` - Boolean that is true when it is our turn and false when it is the enemies.
+   ///`alpha` - The current best score attained anywhere in the tree
+   //`beta` - The current worst score found anywhere in the three.
     fn minimax(
         &self,
         self_id: &str,
