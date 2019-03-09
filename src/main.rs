@@ -36,7 +36,7 @@ use tiny_http::{Response, Server};
 use analytics::Analytics;
 
 #[allow(unused_imports)]
-use profile::{AStarBasic, Aggressive, Cautious, Follow, NotSuck, Profile, Sim, Straight};
+use profile::{AlphaBeta, AStarBasic, Aggressive, Cautious, Follow, NotSuck, Profile, Sim, Straight};
 
 fn main() {
     if env::var("RUST_LOG").is_err() {

@@ -17,6 +17,7 @@
  */
 use super::game::{Dir, Snake, State};
 
+mod alpha_beta;
 mod aggressive;
 mod astarbasic;
 mod cautious;
@@ -25,6 +26,7 @@ mod notsuck;
 mod sim;
 mod straight;
 
+pub use alpha_beta::AlphaBeta;
 pub use aggressive::Aggressive;
 pub use astarbasic::AStarBasic;
 pub use cautious::Cautious;
@@ -32,6 +34,7 @@ pub use follow::Follow;
 pub use notsuck::NotSuck;
 pub use sim::Sim;
 pub use straight::Straight;
+
 
 ///
 /// A profile is a unique algorithm that defines how the snake
@@ -58,6 +61,7 @@ pub trait Profile {
 
 pub fn string_to_profile(profile: &str) -> Box<Profile> {
     match profile {
+        "alpha_beta" => Box::new(AlphaBeta::new()),
         "aggressive" => Box::new(Aggressive::new()),
         "astarbasic" => Box::new(AStarBasic::new()),
         "cautious" => Box::new(Cautious::new()),
