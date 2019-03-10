@@ -140,6 +140,6 @@ impl AlphaBeta {
                 }
             }
         }
-        return (best_score, best_move);
+        (best_score, best_move)
     }
 }
