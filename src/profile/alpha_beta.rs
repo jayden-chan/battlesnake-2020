@@ -62,18 +62,18 @@ impl AlphaBeta {
         }
     }
 
-   ///This recursive function simulates our snake and the enemy snake taking turns, with the
-   ///final nodes being the scores at the current board states.
-   ///
-   /// # Arguments
-   ///`self_id` - The ID of the snake currently running this profile.
-   ///`enemy_id` - The ID of the snake not running this profile. If there are more than two snakes it
-   ///will be a random snake that is not running this profile.
-   ///`depth` - The current recursive depth.
-   ///`st` - The current state of the board which moves will be made from.
-   ///`maximizing_player` - Boolean that is true when it is our turn and false when it is the enemies.
-   ///`alpha` - The current best score attained anywhere in the tree
-   //`beta` - The current worst score found anywhere in the three.
+    ///This recursive function simulates our snake and the enemy snake taking turns, with the
+    ///final nodes being the scores at the current board states.
+    ///
+    /// # Arguments
+    ///`self_id` - The ID of the snake currently running this profile.
+    ///`enemy_id` - The ID of the snake not running this profile. If there are more than two snakes it
+    ///will be a random snake that is not running this profile.
+    ///`depth` - The current recursive depth.
+    ///`st` - The current state of the board which moves will be made from.
+    ///`maximizing_player` - Boolean that is true when it is our turn and false when it is the enemies.
+    ///`alpha` - The current best score attained anywhere in the tree
+    //`beta` - The current worst score found anywhere in the three.
     fn minimax(
         &self,
         self_id: &str,
@@ -95,9 +95,10 @@ impl AlphaBeta {
         }
         let temp_st = st.clone();
         //set up the values that the return will go into and set the snake from the state.
-        let (temp_snake, mut best_score) = match maximizing_player {
-            true => (st.board.snakes.get(self_id).unwrap(), MIN),
-            false => (st.board.snakes.get(enemy_id).unwrap(), MAX),
+        let (temp_snake, mut best_score) = if maximizing_player {
+            (st.board.snakes.get(self_id).unwrap(), MIN)
+        } else {
+            (st.board.snakes.get(enemy_id).unwrap(), MAX)
         };
         let mut best_move = Point { x: 0, y: 0 };
         //Check each possible move and update our snake with that move.
@@ -108,7 +109,8 @@ impl AlphaBeta {
 
             if maximizing_player {
                 let snake = new_st.board.snakes.get_mut(self_id).unwrap();
-                let (_, _) = snake.update_from_move(dir, &st.board.food);
+                //Update state with eaten food
+                snake.update_from_move(dir, &st.board.food);
                 if snake.health == 0 {
                     continue;
                 }
@@ -126,7 +128,8 @@ impl AlphaBeta {
             //If we are not the maximizing player than it must be our opponent.
             } else {
                 let snake = new_st.board.snakes.get_mut(enemy_id).unwrap();
-                let (_, _) = snake.update_from_move(dir, &st.board.food);
+                //update state with eaten food
+                snake.update_from_move(dir, &st.board.food);
                 let (val, _) =
                     self.minimax(self_id, enemy_id, depth + 1, &new_st, true, alpha, beta);
                 if val < best_score {
