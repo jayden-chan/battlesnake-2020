@@ -83,72 +83,72 @@ impl AlphaBeta {
         maximizing_player: bool,
         alpha: i16,
         beta: i16,
-        ) -> (i16, Point) {
-            if depth > MAX_DEPTH {
-                let snake = st.board.snakes.get(self_id).unwrap();
-                let near_food = snake.nearest_food(&st);
-                let score = match near_food {
-                    Some(near_food) => (100 - near_food.manhattan(snake.body[0])) as i16,
-                        None => 0,
-                };
-                return (score, Point { x: 0, y: 0 });
-            }
-            //set up the values that the return will go into and set the snake from the state.
-            let (temp_snake, mut best_score) = if maximizing_player {
-                (st.board.snakes.get(self_id).unwrap(), MIN)
-            } else {
-                (st.board.snakes.get(enemy_id).unwrap(), MAX)
+    ) -> (i16, Point) {
+        if depth > MAX_DEPTH {
+            let snake = st.board.snakes.get(self_id).unwrap();
+            let near_food = snake.nearest_food(&st);
+            let score = match near_food {
+                Some(near_food) => (100 - near_food.manhattan(snake.body[0])) as i16,
+                None => 0,
             };
-            let mut best_move = Point { x: 0, y: 0 };
-            //Check each possible move and update our snake with that move.
-            for (pos_move, _) in temp_snake.body[0].successors(&temp_snake, &st) {
-                let dir = temp_snake.body[0].dir_to(pos_move).unwrap();
-                //create a new copy of the origonal state that will be modified with the possible move.
-                let mut new_st = st.clone();
+            return (score, Point { x: 0, y: 0 });
+        }
+        //set up the values that the return will go into and set the snake from the state.
+        let (temp_snake, mut best_score) = if maximizing_player {
+            (st.board.snakes.get(self_id).unwrap(), MIN)
+        } else {
+            (st.board.snakes.get(enemy_id).unwrap(), MAX)
+        };
+        let mut best_move = Point { x: 0, y: 0 };
+        //Check each possible move and update our snake with that move.
+        for (pos_move, _) in temp_snake.body[0].successors(&temp_snake, &st) {
+            let dir = temp_snake.body[0].dir_to(pos_move).unwrap();
+            //create a new copy of the origonal state that will be modified with the possible move.
+            let mut new_st = st.clone();
 
-                if maximizing_player {
-                    let snake = new_st.board.snakes.get_mut(self_id).unwrap();
-                    //Update state with eaten food
-                    let (_, food_eaten) = snake.update_from_move(dir, &st.board.food);
-                    if let Some(p) = food_eaten {
-                        new_st.board.food.remove(&p);
-                    }
-                    if snake.health == 0 {
-                        continue;
-                    }
-                    let (val, _) =
-                        self.minimax(self_id, enemy_id, depth + 1, &new_st, false, alpha, beta);
-                    if val > best_score {
-                        best_move = pos_move;
-                    }
-                    best_score = std::cmp::max(best_score, val);
-                    let new_alpha = std::cmp::max(alpha, best_score);
+            if maximizing_player {
+                let snake = new_st.board.snakes.get_mut(self_id).unwrap();
+                //Update state with eaten food
+                let (_, food_eaten) = snake.update_from_move(dir, &st.board.food);
+                if let Some(p) = food_eaten {
+                    new_st.board.food.remove(&p);
+                }
+                if snake.health == 0 {
+                    continue;
+                }
+                let (val, _) =
+                    self.minimax(self_id, enemy_id, depth + 1, &new_st, false, alpha, beta);
+                if val > best_score {
+                    best_move = pos_move;
+                }
+                best_score = std::cmp::max(best_score, val);
+                let new_alpha = std::cmp::max(alpha, best_score);
 
-                    if beta <= new_alpha {
-                        break;
-                    }
-                    //If we are not the maximizing player than it must be our opponent.
-                } else {
-                    let snake = new_st.board.snakes.get_mut(enemy_id).unwrap();
-                    //update state with eaten food
-                    let (_, food_eaten) = snake.update_from_move(dir, &st.board.food);
-                    if let Some(p) = food_eaten {
-                        new_st.board.food.remove(&p);
-                    }
+                if beta <= new_alpha {
+                    break;
+                }
+            //If we are not the maximizing player than it must be our opponent.
+            } else {
+                let snake = new_st.board.snakes.get_mut(enemy_id).unwrap();
+                //update state with eaten food
+                let (_, food_eaten) = snake.update_from_move(dir, &st.board.food);
+                if let Some(p) = food_eaten {
+                    new_st.board.food.remove(&p);
+                }
 
-                    let (val, _) =
-                        self.minimax(self_id, enemy_id, depth + 1, &new_st, true, alpha, beta);
-                    if val < best_score {
-                        best_move = pos_move;
-                    }
-                    best_score = std::cmp::min(best_score, val);
-                    let new_beta = std::cmp::min(best_score, beta);
+                let (val, _) =
+                    self.minimax(self_id, enemy_id, depth + 1, &new_st, true, alpha, beta);
+                if val < best_score {
+                    best_move = pos_move;
+                }
+                best_score = std::cmp::min(best_score, val);
+                let new_beta = std::cmp::min(best_score, beta);
 
-                    if new_beta <= alpha {
-                        break;
-                    }
+                if new_beta <= alpha {
+                    break;
                 }
             }
-            (best_score, best_move)
         }
+        (best_score, best_move)
+    }
 }
