@@ -20,13 +20,13 @@ use log::debug;
 
 use super::super::game::{Dir, Point, Snake, State};
 use super::Profile;
-use std::clone::Clone;
+use std::{clone::Clone, cmp::max, cmp::min};
 
 const MAX: i16 = 1000;
 const MIN: i16 = -1000;
 const MAX_DEPTH: u8 = 10;
 ///
-///This profile will be used in 1v1 situations. It implements MiniMax alpha beta pruning.
+/// This profile will be used in 1v1 situations. It implements MiniMax alpha beta pruning.
 ///
 #[derive(Copy, Clone)]
 pub struct AlphaBeta {
@@ -42,8 +42,8 @@ impl Profile for AlphaBeta {
                 enemy_id = pos_id.to_string();
             }
         }
-        let (score, dir) = self.minimax(self_id, &enemy_id, 1, &mut st.clone(), true, MIN, MAX);
-        return s.body[0].dir_to(dir).unwrap();
+        let (_, point) = self.minimax(self_id, &enemy_id, 1, &mut st.clone(), true, MIN, MAX);
+        s.body[0].dir_to(point).unwrap()
     }
 
     fn get_status(&self) -> String {
@@ -61,19 +61,18 @@ impl AlphaBeta {
             status: "AlphaBeta",
         }
     }
-
-    ///This recursive function simulates our snake and the enemy snake taking turns, with the
-    ///final nodes being the scores at the current board states.
+    /// This recursive function simulates our snake and the enemy snake taking turns, with the
+    /// final nodes being the scores at the current board states.
     ///
     /// # Arguments
-    ///`self_id` - The ID of the snake currently running this profile.
-    ///`enemy_id` - The ID of the snake not running this profile. If there are more than two snakes it
-    ///will be a random snake that is not running this profile.
-    ///`depth` - The current recursive depth.
-    ///`st` - The current state of the board which moves will be made from.
-    ///`maximizing_player` - Boolean that is true when it is our turn and false when it is the enemies.
-    ///`alpha` - The current best score attained anywhere in the tree
-    //`beta` - The current worst score found anywhere in the three.
+    /// `self_id` - The ID of the snake currently running this profile.
+    /// `enemy_id` - The ID of the snake not running this profile. If there are more than two snakes it
+    /// will be a random snake that is not running this profile.
+    /// `depth` - The current recursive depth.
+    /// `st` - The current state of the board which moves will be made from.
+    /// `maximizing_player` - Boolean that is true when it is our turn and false when it is the enemies.
+    /// `alpha` - The current best score attained anywhere in the tree
+    /// `beta` - The current worst score found anywhere in the three.
     fn minimax(
         &self,
         self_id: &str,
@@ -93,22 +92,22 @@ impl AlphaBeta {
             };
             return (score, Point { x: 0, y: 0 });
         }
-        //set up the values that the return will go into and set the snake from the state.
+        // set up the values that the return will go into and set the snake from the state.
         let (temp_snake, mut best_score) = if maximizing_player {
             (st.board.snakes.get(self_id).unwrap(), MIN)
         } else {
             (st.board.snakes.get(enemy_id).unwrap(), MAX)
         };
         let mut best_move = Point { x: 0, y: 0 };
-        //Check each possible move and update our snake with that move.
+        // Check each possible move and update our snake with that move.
         for (pos_move, _) in temp_snake.body[0].successors(&temp_snake, &st) {
             let dir = temp_snake.body[0].dir_to(pos_move).unwrap();
-            //create a new copy of the origonal state that will be modified with the possible move.
+            // Create a new copy of the origonal state that will be modified with the possible move.
             let mut new_st = st.clone();
 
             if maximizing_player {
                 let snake = new_st.board.snakes.get_mut(self_id).unwrap();
-                //Update state with eaten food
+                // Update state with eaten food
                 let (_, food_eaten) = snake.update_from_move(dir, &st.board.food);
                 if let Some(p) = food_eaten {
                     new_st.board.food.remove(&p);
@@ -121,13 +120,13 @@ impl AlphaBeta {
                 if val > best_score {
                     best_move = pos_move;
                 }
-                best_score = std::cmp::max(best_score, val);
-                let new_alpha = std::cmp::max(alpha, best_score);
+                best_score = max(best_score, val);
+                let new_alpha = max(alpha, best_score);
 
                 if beta <= new_alpha {
                     break;
                 }
-            //If we are not the maximizing player than it must be our opponent.
+            // If we are not the maximizing player than it must be our opponent.
             } else {
                 let snake = new_st.board.snakes.get_mut(enemy_id).unwrap();
                 //update state with eaten food
@@ -141,8 +140,8 @@ impl AlphaBeta {
                 if val < best_score {
                     best_move = pos_move;
                 }
-                best_score = std::cmp::min(best_score, val);
-                let new_beta = std::cmp::min(best_score, beta);
+                best_score = min(best_score, val);
+                let new_beta = min(best_score, beta);
 
                 if new_beta <= alpha {
                     break;
