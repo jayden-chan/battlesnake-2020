@@ -24,6 +24,7 @@ use std::{clone::Clone, cmp::max, cmp::min};
 
 const MAX: i16 = 1000;
 const MIN: i16 = -1000;
+const HEAD_ON: i16 = -500;
 const MAX_DEPTH: u8 = 10;
 ///
 /// This profile will be used in 1v1 situations. It implements MiniMax alpha beta pruning.
@@ -100,7 +101,24 @@ impl AlphaBeta {
         };
         let mut best_move = Point { x: 0, y: 0 };
         // Check each possible move and update our snake with that move.
-        for (pos_move, _) in temp_snake.body[0].successors(&temp_snake, &st) {
+        let mut successors = temp_snake.body[0].successors(&temp_snake, &st);
+        if !maximizing_player {
+            let self_head = st.board.snakes.get(self_id).unwrap().body[0];
+            let orth = temp_snake.body[0].orthogonal();
+            for i in 0..4 {
+                //TO DO: We are addning body parts as a safe move.
+            if depth == 2 {
+                println!("Orth Point {:?}", orth[i]);
+            }
+                if orth[i] == self_head {
+                    successors.push((self_head, 0));
+                    if depth == 2 {
+                        println!("Adding point to pos_move {:?}", orth[i]);
+                    }
+                }
+            }
+        }
+        for (pos_move, _) in successors {
             let dir = temp_snake.body[0].dir_to(pos_move).unwrap();
             // Create a new copy of the origonal state that will be modified with the possible move.
             let mut new_st = st.clone();
@@ -135,6 +153,9 @@ impl AlphaBeta {
                     new_st.board.food.remove(&p);
                 }
 
+                if new_st.board.snakes.get(self_id).unwrap().body[0] == pos_move {
+                    return (HEAD_ON, best_move);
+                }
                 let (val, _) =
                     self.minimax(self_id, enemy_id, depth + 1, &new_st, true, alpha, beta);
                 if val < best_score {
