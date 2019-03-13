@@ -36,7 +36,7 @@ use tiny_http::{Response, Server};
 use analytics::Analytics;
 
 #[allow(unused_imports)]
-use profile::{AStarBasic, Aggressive, Cautious, Follow, NotSuck, Profile, Sim, Straight};
+use profile::{Aggressive, AlphaBeta, AStarBasic, Cautious, Follow, NotSuck, Profile, Sim, Straight};
 
 fn main() {
     if env::var("RUST_LOG").is_err() {
@@ -51,7 +51,7 @@ fn main() {
     env_logger::init();
 
     let server = Server::http(format!("0.0.0.0:{}", port)).unwrap();
-    let mut profile = Sim::new();
+    let mut profile = AlphaBeta::new();
     let mut analytics_profiles = HashMap::<String, Analytics>::new();
 
     info!("Battlesnake server running on port {}", port);
