@@ -43,7 +43,7 @@ impl Profile for AlphaBeta {
                 enemy_id = pos_id.to_string();
             }
         }
-        let (_, point) = self.minimax(self_id, &enemy_id, 1, &mut st.clone(), true, MIN, MAX);
+        let (_, point) = self.minimax(self_id, &enemy_id, 1, st, true, MIN, MAX);
         s.body[0].dir_to(point).unwrap()
     }
 
@@ -93,34 +93,26 @@ impl AlphaBeta {
             };
             return (score, Point { x: 0, y: 0 });
         }
-        // set up the values that the return will go into and set the snake from the state.
         let (temp_snake, mut best_score) = if maximizing_player {
             (st.board.snakes.get(self_id).unwrap(), MIN)
         } else {
             (st.board.snakes.get(enemy_id).unwrap(), MAX)
         };
         let mut best_move = Point { x: 0, y: 0 };
-        // Check each possible move and update our snake with that move.
         let mut successors = temp_snake.body[0].successors(&temp_snake, &st);
+        // Manually add our head back as a valid move for the enemy.
         if !maximizing_player {
             let self_head = st.board.snakes.get(self_id).unwrap().body[0];
             let orth = temp_snake.body[0].orthogonal();
             for i in 0..4 {
-                //TO DO: We are addning body parts as a safe move.
-            if depth == 2 {
-                println!("Orth Point {:?}", orth[i]);
-            }
                 if orth[i] == self_head {
                     successors.push((self_head, 0));
-                    if depth == 2 {
-                        println!("Adding point to pos_move {:?}", orth[i]);
-                    }
                 }
             }
         }
+        // Iterate through moves in our successors and call minimax for each
         for (pos_move, _) in successors {
             let dir = temp_snake.body[0].dir_to(pos_move).unwrap();
-            // Create a new copy of the origonal state that will be modified with the possible move.
             let mut new_st = st.clone();
 
             if maximizing_player {
@@ -138,24 +130,32 @@ impl AlphaBeta {
                 if val > best_score {
                     best_move = pos_move;
                 }
+                // Updates the current available best move and prune.
                 best_score = max(best_score, val);
                 let new_alpha = max(alpha, best_score);
 
                 if beta <= new_alpha {
                     break;
                 }
-            // If we are not the maximizing player than it must be our opponent.
+            // Move for enemy snake
             } else {
                 let snake = new_st.board.snakes.get_mut(enemy_id).unwrap();
-                //update state with eaten food
+                // Update state with eaten food
                 let (_, food_eaten) = snake.update_from_move(dir, &st.board.food);
                 if let Some(p) = food_eaten {
                     new_st.board.food.remove(&p);
                 }
 
-                if new_st.board.snakes.get(self_id).unwrap().body[0] == pos_move {
-                    return (HEAD_ON, best_move);
+                // Deal with head on collisions
+                let our_snake = st.board.snakes.get(self_id).unwrap();
+                if our_snake.body[0] == pos_move {
+                    if our_snake.body.len() > snake.body.len() {
+                        continue;
+                    } else {
+                        return (HEAD_ON, best_move);
+                    }
                 }
+
                 let (val, _) =
                     self.minimax(self_id, enemy_id, depth + 1, &new_st, true, alpha, beta);
                 if val < best_score {
