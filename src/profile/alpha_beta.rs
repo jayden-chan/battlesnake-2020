@@ -43,9 +43,14 @@ impl Profile for AlphaBeta {
                 enemy_id = pos_id.to_string();
             }
         }
-        let (_, point) = self.minimax(self_id, &enemy_id, 1, st, true, MIN, MAX);
-        s.body[0].dir_to(point).unwrap()
+        let (score, point) = self.minimax(self_id, &enemy_id, 1, st, true, MIN, MAX);
+        if score > MIN {
+            s.body[0].dir_to(point).unwrap()
+        } else {
+            s.find_safe_move(&st)
+        }
     }
+        
 
     fn get_status(&self) -> String {
         String::from(self.status)

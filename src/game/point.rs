@@ -118,6 +118,25 @@ impl Point {
         }
     }
 
+    pub fn flood_fill(self, s: &Snake, st: &State, max_size: u16) -> Vec<Point> {
+        let mut visited = vec![self];
+        let mut to_visit = vec![self];
+
+        while !to_visit.is_empty() {
+            let curr = to_visit.pop();
+            for p in &curr.unwrap().orthogonal() {
+                if !visited.contains(p) && p.safety_index(s, st) != SafetyIndex::Unsafe {
+                    visited.push(*p);
+                    to_visit.push(*p);
+                }    
+            }
+            if visited.len() as u16 > max_size {
+                break;
+            }
+        } 
+        visited
+    }
+
     /// Returns whether the point is inside the board
     pub fn in_bounds(self, st: &State) -> bool {
         self.x < st.board.width && self.x >= 0 && self.y < st.board.height && self.y >= 0
