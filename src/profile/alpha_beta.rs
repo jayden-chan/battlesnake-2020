@@ -68,7 +68,7 @@ impl AlphaBeta {
         }
     }
     /// This recursive function simulates our snake and the enemy snake taking turns, with the
-    /// final nodes being the scores at the current board states.
+    /// final nodes being the scores at the current board state.
     ///
     /// # Arguments
     /// `self_id` - The ID of the snake currently running this profile.
@@ -90,12 +90,10 @@ impl AlphaBeta {
         beta: i16,
     ) -> (i16, Point) {
         if depth > MAX_DEPTH {
-            let snake = st.board.snakes.get(self_id).unwrap();
-            let near_food = snake.nearest_food(&st);
-            let score = match near_food {
-                Some(near_food) => (100 - near_food.manhattan(snake.body[0])) as i16,
-                None => 0,
-            };
+            let s = st.board.snakes.get(self_id).unwrap();
+            let len = s.body.len() as u16;
+            let flood = s.body[0].flood_fill(s, st, len);
+            let score = flood.len() as i16;
             return (score, Point { x: 0, y: 0 });
         }
         let (temp_snake, mut best_score) = if maximizing_player {
