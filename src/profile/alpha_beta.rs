@@ -50,7 +50,6 @@ impl Profile for AlphaBeta {
             s.find_safe_move(&st)
         }
     }
-        
 
     fn get_status(&self) -> String {
         String::from(self.status)
@@ -90,12 +89,9 @@ impl AlphaBeta {
         beta: i16,
     ) -> (i16, Point) {
         if depth > MAX_DEPTH {
-            let s = st.board.snakes.get(self_id).unwrap();
-            let len = s.body.len() as u16;
-            let flood = s.body[0].flood_fill(s, st, len);
-            let score = flood.len() as i16;
-            return (score, Point { x: 0, y: 0 });
+            return (2 * self.get_score(&st, self_id) - self.get_score(&st, enemy_id), Point { x: 0, y: 0 });
         }
+        // Set the default score and best move
         let (temp_snake, mut best_score) = if maximizing_player {
             (st.board.snakes.get(self_id).unwrap(), MIN)
         } else {
@@ -173,5 +169,13 @@ impl AlphaBeta {
             }
         }
         (best_score, best_move)
+    }
+
+    fn get_score(&self, st: &State, id: &str) -> (i16) {
+        let s = st.board.snakes.get(id).unwrap();
+        let len = s.body.len() as u16;
+        let flood = s.body[0].flood_fill(s, st, len);
+        let score = flood.len() as i16;
+        return score;
     }
 }
