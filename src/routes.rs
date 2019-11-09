@@ -23,7 +23,7 @@ use std::env;
 
 use super::analytics::Analytics;
 use super::game::{Board, Dir, Game, Point, Snake, State};
-use super::profile::{Profile, Sim};
+use super::profile::{Profile, Sim, AlphaBeta};
 
 #[derive(Deserialize, Debug)]
 pub struct BoardJson {
@@ -76,7 +76,7 @@ pub fn start_handler(
 /// Handle the /move POST request
 pub fn move_handler(
     buffer: &str,
-    profile: &mut Sim,
+    profile: &mut AlphaBeta,
     analytics: &mut HashMap<String, Analytics>,
 ) -> String {
     match parse_body(buffer) {
@@ -84,7 +84,7 @@ pub fn move_handler(
             let this_analytics = analytics.get_mut(&state.game.id).unwrap();
 
             this_analytics.fire(&you.id, &state);
-            profile.update_analytics(this_analytics.matches.clone());
+            // profile.update_analytics(this_analytics.matches.clone());
 
             let dir = profile.get_move(&you, &state);
 

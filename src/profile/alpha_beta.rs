@@ -89,7 +89,7 @@ impl AlphaBeta {
         beta: i16,
     ) -> (i16, Point) {
         if depth > MAX_DEPTH {
-            return (2 * self.get_score(&st, self_id) - self.get_score(&st, enemy_id), Point { x: 0, y: 0 });
+            return (2 * self.get_flood_score(&st, self_id) - self.get_flood_score(&st, enemy_id), Point { x: 0, y: 0 });
         }
         // Set the default score and best move
         let (temp_snake, mut best_score) = if maximizing_player {
@@ -163,7 +163,7 @@ impl AlphaBeta {
                 best_score = min(best_score, val);
                 let new_beta = min(best_score, beta);
 
-                if new_beta <= alpha {
+                if new_beta < alpha {
                     break;
                 }
             }
@@ -171,7 +171,7 @@ impl AlphaBeta {
         (best_score, best_move)
     }
 
-    fn get_score(&self, st: &State, id: &str) -> (i16) {
+    fn get_flood_score(&self, st: &State, id: &str) -> (i16) {
         let s = st.board.snakes.get(id).unwrap();
         let len = s.body.len() as u16;
         let flood = s.body[0].flood_fill(s, st, len);

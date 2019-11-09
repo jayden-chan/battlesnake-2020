@@ -177,15 +177,15 @@ mod tests {
         assert_eq!(
             snake.body,
             [
-                Point { x: 12, y: 2 },
-                Point { x: 11, y: 2 },
-                Point { x: 10, y: 2 },
-                Point { x: 10, y: 3 },
-                Point { x: 9, y: 3 },
-                Point { x: 8, y: 3 },
-                Point { x: 7, y: 3 },
-                Point { x: 7, y: 2 },
-                Point { x: 8, y: 2 },
+            Point { x: 12, y: 2 },
+            Point { x: 11, y: 2 },
+            Point { x: 10, y: 2 },
+            Point { x: 10, y: 3 },
+            Point { x: 9, y: 3 },
+            Point { x: 8, y: 3 },
+            Point { x: 7, y: 3 },
+            Point { x: 7, y: 2 },
+            Point { x: 8, y: 2 },
             ]
         );
 
@@ -196,15 +196,15 @@ mod tests {
         assert_eq!(
             snake.body,
             [
-                Point { x: 12, y: 1 },
-                Point { x: 12, y: 2 },
-                Point { x: 11, y: 2 },
-                Point { x: 10, y: 2 },
-                Point { x: 10, y: 3 },
-                Point { x: 9, y: 3 },
-                Point { x: 8, y: 3 },
-                Point { x: 7, y: 3 },
-                Point { x: 7, y: 2 },
+            Point { x: 12, y: 1 },
+            Point { x: 12, y: 2 },
+            Point { x: 11, y: 2 },
+            Point { x: 10, y: 2 },
+            Point { x: 10, y: 3 },
+            Point { x: 9, y: 3 },
+            Point { x: 8, y: 3 },
+            Point { x: 7, y: 3 },
+            Point { x: 7, y: 2 },
             ]
         );
 
@@ -215,16 +215,16 @@ mod tests {
         assert_eq!(
             snake.body,
             [
-                Point { x: 11, y: 1 },
-                Point { x: 12, y: 1 },
-                Point { x: 12, y: 2 },
-                Point { x: 11, y: 2 },
-                Point { x: 10, y: 2 },
-                Point { x: 10, y: 3 },
-                Point { x: 9, y: 3 },
-                Point { x: 8, y: 3 },
-                Point { x: 7, y: 3 },
-                Point { x: 7, y: 3 },
+            Point { x: 11, y: 1 },
+            Point { x: 12, y: 1 },
+            Point { x: 12, y: 2 },
+            Point { x: 11, y: 2 },
+            Point { x: 10, y: 2 },
+            Point { x: 10, y: 3 },
+            Point { x: 9, y: 3 },
+            Point { x: 8, y: 3 },
+            Point { x: 7, y: 3 },
+            Point { x: 7, y: 3 },
             ]
         );
 
