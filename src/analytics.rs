@@ -133,7 +133,7 @@ impl Analytics {
 
 impl Drop for Analytics {
     fn drop(&mut self) {
-        let path = format!("{}.txt", self.id);
+        let path = format!("samples/{}.txt", self.id);
         let path = Path::new(&path);
         let display = path.display();
 
