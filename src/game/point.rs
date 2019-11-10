@@ -15,11 +15,11 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  *
  */
-use serde_derive::Deserialize;
+use serde_derive::{Deserialize, Serialize};
 
 use super::{Dir, SafetyIndex, Snake, State};
 
-#[derive(Deserialize, Debug, Copy, Clone, PartialEq, Eq, Hash)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, Hash)]
 pub struct Point {
     pub x: i8,
     pub y: i8,

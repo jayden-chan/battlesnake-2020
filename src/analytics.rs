@@ -19,8 +19,9 @@
 //! and figure out what kind of moves they are likely to make
 //! in the future.
 
-use hashbrown::HashMap;
 use log::info;
+use std::collections::HashMap;
+use std::{error::Error, fs::File, io::prelude::*, path::Path};
 
 use super::game::{Dir, State};
 use super::profile::{string_to_profile, Profile};
@@ -35,6 +36,7 @@ pub struct Analytics {
     expected_moves: HashMap<String, HashMap<String, Vec<Dir>>>,
     pub matches: HashMap<String, String>,
     algs: HashMap<String, Box<Profile>>,
+    full_game: Vec<State>,
 }
 
 impl Analytics {
@@ -66,6 +68,7 @@ impl Analytics {
             expected_moves,
             algs: algs_map,
             matches: HashMap::<String, String>::new(),
+            full_game: vec![st.clone()],
         }
     }
 
@@ -74,6 +77,7 @@ impl Analytics {
     /// expected moves, and calculate the next set of expected moves.
     pub fn fire(&mut self, s_id: &str, st: &State) {
         // Update the real moves for each of the snakes
+        self.full_game.push(st.clone());
         for (id, s) in &st.board.snakes {
             if let Some(d) = s.body[1].dir_to(s.body[0]) {
                 let entry = self.real_moves.get_mut(id).unwrap();
@@ -119,5 +123,27 @@ impl Analytics {
                 alg_vec.pop();
             }
         }
+    }
+}
+
+impl Drop for Analytics {
+    fn drop(&mut self) {
+        let path = format!("{}.txt", self.full_game[0].game.id);
+        let path = Path::new(&path);
+        let display = path.display();
+
+        File::create(&path)
+            .map_err(|why| format!("Couldn't create {}: {}", display, why.description()))
+            .and_then(|mut file| {
+                let mut buffer = String::new();
+
+                self.full_game.iter().for_each(|state| {
+                    buffer.push_str(&serde_json::to_string(&state).unwrap());
+                });
+
+                file.write_all(buffer.as_bytes())
+                    .map_err(|why| format!("Couldn't create {}: {}", display, why.description()))
+            })
+            .unwrap();
     }
 }

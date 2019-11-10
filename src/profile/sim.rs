@@ -18,9 +18,9 @@
 
 //! This module contains the Sim algorithm & unit tests
 
-use hashbrown::HashMap;
 use log::{debug, info, warn};
 use rayon::prelude::*;
+use std::collections::HashMap;
 
 use std::cmp::Ordering;
 use std::time::SystemTime;

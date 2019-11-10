@@ -23,26 +23,26 @@ pub use dir::Dir;
 pub use point::Point;
 pub use snake::Snake;
 
-use hashbrown::{HashMap, HashSet};
 use serde_derive::{Deserialize, Serialize};
+use std::collections::{HashMap, HashSet};
 use std::fs::File;
 use std::io::BufReader;
 
 use super::routes::MoveRequest;
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 pub struct State {
     pub game: Game,
     pub turn: u32,
     pub board: Board,
 }
 
-#[derive(Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Game {
     pub id: String,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Serialize, Debug, Clone)]
 pub struct Board {
     pub height: i8,
     pub width: i8,

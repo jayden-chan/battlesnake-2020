@@ -15,20 +15,14 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  *
  */
-extern crate env_logger;
-extern crate hashbrown;
-extern crate log;
-extern crate pathfinding;
-extern crate rayon;
-extern crate tiny_http;
 
 mod analytics;
 mod game;
 mod profile;
 mod routes;
 
-use hashbrown::HashMap;
 use log::{error, info};
+use std::collections::HashMap;
 use std::env;
 use std::time::SystemTime;
 use tiny_http::{Response, Server};
@@ -36,7 +30,9 @@ use tiny_http::{Response, Server};
 use analytics::Analytics;
 
 #[allow(unused_imports)]
-use profile::{Aggressive, AlphaBeta, AStarBasic, Cautious, Follow, NotSuck, Profile, Sim, Straight};
+use profile::{
+    AStarBasic, Aggressive, AlphaBeta, Cautious, Follow, NotSuck, Profile, Sim, Straight,
+};
 
 fn main() {
     if env::var("RUST_LOG").is_err() {
@@ -51,7 +47,7 @@ fn main() {
     env_logger::init();
 
     let server = Server::http(format!("0.0.0.0:{}", port)).unwrap();
-    let mut profile = AlphaBeta::new();
+    let mut profile = Sim::new();
     let mut analytics_profiles = HashMap::<String, Analytics>::new();
 
     info!("Battlesnake server running on port {}", port);

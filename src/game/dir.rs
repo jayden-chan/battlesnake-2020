@@ -15,8 +15,8 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  *
  */
-use hashbrown::HashSet;
 use log::info;
+use std::collections::HashSet;
 
 use super::{Move, Point, SafetyIndex, Snake, State};
 

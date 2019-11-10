@@ -15,12 +15,12 @@
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  *
  */
-use hashbrown::HashSet;
-use serde_derive::Deserialize;
+use serde_derive::{Deserialize, Serialize};
+use std::collections::HashSet;
 
 use super::{Dir, Point, SafetyIndex, State};
 
-#[derive(Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Hash, Clone)]
 pub struct Snake {
     pub id: String,
     pub health: u8,
