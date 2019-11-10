@@ -69,7 +69,7 @@ fn main() {
                 let res = routes::move_handler(&content, &mut profile, &mut analytics_profiles);
                 response = Response::from_string(res);
             }
-            "end" => {
+            "/end" => {
                 info!("End of game");
                 routes::end_handler(&content, &mut analytics_profiles);
                 response = Response::from_string("OK");

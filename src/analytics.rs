@@ -139,6 +139,7 @@ impl Drop for Analytics {
 
                 self.full_game.iter().for_each(|state| {
                     buffer.push_str(&serde_json::to_string(&state).unwrap());
+                    buffer.push('\n');
                 });
 
                 file.write_all(buffer.as_bytes())
