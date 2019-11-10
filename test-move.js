@@ -1,7 +1,12 @@
 const got = require('got');
 
-const file = process.argv[2]
+const file = process.argv[2];
 const turn = Number(process.argv[3]);
+
+if (file === undefined || Number.isNaN(turn)) {
+  console.log('Usage: node test-move.js <archive>.txt <move>');
+  process.exit(1);
+}
 
 const game = require('fs')
   .readFileSync(file)
