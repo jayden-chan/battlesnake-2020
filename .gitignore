@@ -2,3 +2,4 @@
 **/*.rs.bk
 *.swp
 samples/*.txt
+node_modules
