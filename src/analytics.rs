@@ -36,7 +36,8 @@ pub struct Analytics {
     expected_moves: HashMap<String, HashMap<String, Vec<Dir>>>,
     pub matches: HashMap<String, String>,
     algs: HashMap<String, Box<Profile>>,
-    full_game: Vec<State>,
+    full_game: Vec<String>,
+    id: String,
 }
 
 impl Analytics {
@@ -68,8 +69,13 @@ impl Analytics {
             expected_moves,
             algs: algs_map,
             matches: HashMap::<String, String>::new(),
-            full_game: vec![st.clone()],
+            full_game: vec![],
+            id: st.game.id.clone(),
         }
+    }
+
+    pub fn update_full_game(&mut self, buffer: &str) {
+        self.full_game.push(String::from(buffer));
     }
 
     /// Updates the analytics. This function will update the moves
@@ -77,7 +83,6 @@ impl Analytics {
     /// expected moves, and calculate the next set of expected moves.
     pub fn fire(&mut self, s_id: &str, st: &State) {
         // Update the real moves for each of the snakes
-        self.full_game.push(st.clone());
         for (id, s) in &st.board.snakes {
             if let Some(d) = s.body[1].dir_to(s.body[0]) {
                 let entry = self.real_moves.get_mut(id).unwrap();
@@ -128,7 +133,7 @@ impl Analytics {
 
 impl Drop for Analytics {
     fn drop(&mut self) {
-        let path = format!("{}.txt", self.full_game[0].game.id);
+        let path = format!("{}.txt", self.id);
         let path = Path::new(&path);
         let display = path.display();
 
@@ -138,7 +143,7 @@ impl Drop for Analytics {
                 let mut buffer = String::new();
 
                 self.full_game.iter().for_each(|state| {
-                    buffer.push_str(&serde_json::to_string(&state).unwrap());
+                    buffer.push_str(&state);
                     buffer.push('\n');
                 });
 
