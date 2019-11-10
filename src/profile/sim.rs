@@ -41,8 +41,8 @@ pub struct Sim {
 }
 
 struct SimBranch {
-    self_controller: Box<Profile>,
-    enemy_controller: Box<Profile>,
+    self_controller: Box<dyn Profile>,
+    enemy_controller: Box<dyn Profile>,
     self_prefix: Dir,
     enemy_prefix: Dir,
     state: State,
@@ -117,7 +117,9 @@ impl Profile for Sim {
             }
         });
 
-        // info!("Dir scores: {:#?}", scores_vec);
+        if st.turn == 238 {
+            info!("Dir scores: {:#?}", scores_vec);
+        }
 
         'outer: for (idx, (dir, score, len)) in scores_vec.iter().enumerate() {
             if dir.is_safety_index(&s, &st, &SafetyIndex::Safe) && !dir.is_corner_risky(&s, &st)

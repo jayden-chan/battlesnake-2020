@@ -23,7 +23,7 @@ use std::env;
 
 use super::analytics::Analytics;
 use super::game::{Board, Dir, Game, Point, Snake, State};
-use super::profile::{Profile, Sim};
+use super::profile::{AlphaBeta, Profile, Sim};
 
 #[derive(Deserialize, Debug)]
 pub struct BoardJson {
@@ -77,6 +77,7 @@ pub fn start_handler(
 pub fn move_handler(
     buffer: &str,
     profile: &mut Sim,
+    alpha_beta: &mut AlphaBeta,
     analytics: &mut HashMap<String, Analytics>,
 ) -> String {
     match parse_body(buffer) {
@@ -87,7 +88,11 @@ pub fn move_handler(
             this_analytics.update_full_game(buffer);
             profile.update_analytics(this_analytics.matches.clone());
 
-            let dir = profile.get_move(&you, &state);
+            let dir = if state.board.snakes.len() > 2 {
+                profile.get_move(&you, &state)
+            } else {
+                alpha_beta.get_move(&you, &state)
+            };
 
             info!("Move: {:?}", dir);
             serde_json::to_string(&dir.as_move()).unwrap()

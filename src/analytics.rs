@@ -35,7 +35,7 @@ pub struct Analytics {
     real_moves: HashMap<String, Vec<Dir>>,
     expected_moves: HashMap<String, HashMap<String, Vec<Dir>>>,
     pub matches: HashMap<String, String>,
-    algs: HashMap<String, Box<Profile>>,
+    algs: HashMap<String, Box<dyn Profile>>,
     full_game: Vec<String>,
     id: String,
 }
@@ -58,7 +58,7 @@ impl Analytics {
             expected_moves.insert(id.clone(), alg_moves.clone());
         }
 
-        let mut algs_map = HashMap::<String, Box<Profile>>::new();
+        let mut algs_map = HashMap::<String, Box<dyn Profile>>::new();
 
         for alg in algs {
             algs_map.insert(alg.to_string(), string_to_profile(alg));

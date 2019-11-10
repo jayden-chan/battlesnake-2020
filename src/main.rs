@@ -48,6 +48,7 @@ fn main() {
 
     let server = Server::http(format!("0.0.0.0:{}", port)).unwrap();
     let mut profile = Sim::new();
+    let mut alpha_beta = AlphaBeta::new();
     let mut analytics_profiles = HashMap::<String, Analytics>::new();
 
     info!("Battlesnake server running on port {}", port);
@@ -66,7 +67,12 @@ fn main() {
                 response = Response::from_string(res);
             }
             "/move" => {
-                let res = routes::move_handler(&content, &mut profile, &mut analytics_profiles);
+                let res = routes::move_handler(
+                    &content,
+                    &mut profile,
+                    &mut alpha_beta,
+                    &mut analytics_profiles,
+                );
                 response = Response::from_string(res);
             }
             "/end" => {

@@ -35,7 +35,6 @@ pub use notsuck::NotSuck;
 pub use sim::Sim;
 pub use straight::Straight;
 
-
 ///
 /// A profile is a unique algorithm that defines how the snake
 /// will behave in game. Multiple profiles are required for use
@@ -59,7 +58,7 @@ pub trait Profile {
     fn get_status(&self) -> String;
 }
 
-pub fn string_to_profile(profile: &str) -> Box<Profile> {
+pub fn string_to_profile(profile: &str) -> Box<dyn Profile> {
     match profile {
         "aggressive" => Box::new(Aggressive::new()),
         "alpha_beta" => Box::new(AlphaBeta::new()),
