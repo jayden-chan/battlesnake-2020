@@ -117,12 +117,8 @@ impl Profile for Sim {
             }
         });
 
-        if st.turn == 238 {
-            info!("Dir scores: {:#?}", scores_vec);
-        }
-
         'outer: for (idx, (dir, score, len)) in scores_vec.iter().enumerate() {
-            if dir.is_safety_index(&s, &st, &SafetyIndex::Safe) && !dir.is_corner_risky(&s, &st)
+            if dir.is_safety_index(&s, &st, &SafetyIndex::Safe)
             // && !(!s.body[0].is_outer(&st) && dir.resulting_point(s.body[0]).is_outer(&st))
             {
                 return **dir;
