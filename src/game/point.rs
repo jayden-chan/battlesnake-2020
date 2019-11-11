@@ -86,6 +86,28 @@ impl Point {
 
         self.in_bounds(st)
     }
+    
+    // Return the number of free spaces visable from the passed point
+    //
+    pub fn flood_fill(self, s: &Snake, st: &State, max_size: u16) -> Vec<Point> {
+        let mut visited = vec![self];
+        let mut to_visit = vec![self];
+
+        while !to_visit.is_empty() {
+            let curr = to_visit.pop();
+            for p in &curr.unwrap().orthogonal() {
+                if !visited.contains(p) && p.safety_index(s, st) != SafetyIndex::Unsafe {
+                    visited.push(*p);
+                    to_visit.push(*p);
+                }    
+            }
+            if visited.len() as u16 > max_size {
+                break;
+            }
+        } 
+        visited
+    }
+
 
     /// Returns the safety index of self.
     ///
