@@ -166,14 +166,7 @@ impl Profile for Sim {
             "notsuck",
             "follow",
         ];
-        let enemy_profiles = vec![
-            "astarbasic",
-            "cautious",
-            "straight",
-            "aggressive",
-            "notsuck",
-            "follow",
-        ];
+        let enemy_profiles = vec!["astarbasic", "cautious", "aggressive"];
         let prefixes = vec![Dir::Up, Dir::Down, Dir::Left, Dir::Right];
 
         let mut branches = Vec::new();
