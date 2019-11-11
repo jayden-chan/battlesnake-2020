@@ -24,6 +24,7 @@ use std::{clone::Clone, cmp::max, cmp::min};
 
 const MAX: i16 = 1000;
 const MIN: i16 = -1000;
+const HEAD_ON: i16 = -500;
 const MAX_DEPTH: u8 = 10;
 ///
 /// This profile will be used in 1v1 situations. It implements MiniMax alpha beta pruning.
@@ -35,9 +36,6 @@ pub struct AlphaBeta {
 
 impl Profile for AlphaBeta {
     fn get_move(&mut self, s: &Snake, st: &State) -> Dir {
-        if st.board.snakes.len() == 1 {
-            panic!("Cannot initialize AlphaBeta with only 1 snake")
-        };
         let self_id = &s.id;
         let mut enemy_id = String::from("Not Initalized");
         for (pos_id, _) in &st.board.snakes {
@@ -45,8 +43,12 @@ impl Profile for AlphaBeta {
                 enemy_id = pos_id.to_string();
             }
         }
-        let (_, point) = self.minimax(self_id, &enemy_id, 1, &mut st.clone(), true, MIN, MAX);
-        s.body[0].dir_to(point).unwrap()
+        let (score, point) = self.minimax(self_id, &enemy_id, 1, st, true, MIN, MAX);
+        if score > MIN {
+            s.body[0].dir_to(point).unwrap()
+        } else {
+            s.find_safe_move(&st)
+        }
     }
 
     fn get_status(&self) -> String {
@@ -65,7 +67,7 @@ impl AlphaBeta {
         }
     }
     /// This recursive function simulates our snake and the enemy snake taking turns, with the
-    /// final nodes being the scores at the current board states.
+    /// final nodes being the scores at the current board state.
     ///
     /// # Arguments
     /// `self_id` - The ID of the snake currently running this profile.
@@ -87,25 +89,29 @@ impl AlphaBeta {
         beta: i16,
     ) -> (i16, Point) {
         if depth > MAX_DEPTH {
-            let snake = st.board.snakes.get(self_id).unwrap();
-            let near_food = snake.nearest_food(&st);
-            let score = match near_food {
-                Some(near_food) => (100 - near_food.manhattan(snake.body[0])) as i16,
-                None => 0,
-            };
-            return (score, Point { x: 0, y: 0 });
+            return (2 * self.get_flood_score(&st, self_id) - self.get_flood_score(&st, enemy_id), Point { x: 0, y: 0 });
         }
-        // set up the values that the return will go into and set the snake from the state.
+        // Set the default score and best move
         let (temp_snake, mut best_score) = if maximizing_player {
             (st.board.snakes.get(self_id).unwrap(), MIN)
         } else {
             (st.board.snakes.get(enemy_id).unwrap(), MAX)
         };
         let mut best_move = Point { x: 0, y: 0 };
-        // Check each possible move and update our snake with that move.
-        for (pos_move, _) in temp_snake.body[0].successors(&temp_snake, &st) {
+        let mut successors = temp_snake.body[0].successors(&temp_snake, &st);
+        // Manually add our head back as a valid move for the enemy.
+        if !maximizing_player {
+            let self_head = st.board.snakes.get(self_id).unwrap().body[0];
+            let orth = temp_snake.body[0].orthogonal();
+            for i in 0..4 {
+                if orth[i] == self_head {
+                    successors.push((self_head, 0));
+                }
+            }
+        }
+        // Iterate through moves in our successors and call minimax for each
+        for (pos_move, _) in successors {
             let dir = temp_snake.body[0].dir_to(pos_move).unwrap();
-            // Create a new copy of the origonal state that will be modified with the possible move.
             let mut new_st = st.clone();
 
             if maximizing_player {
@@ -123,19 +129,30 @@ impl AlphaBeta {
                 if val > best_score {
                     best_move = pos_move;
                 }
+                // Updates the current available best move and prune.
                 best_score = max(best_score, val);
                 let new_alpha = max(alpha, best_score);
 
                 if beta <= new_alpha {
                     break;
                 }
-            // If we are not the maximizing player than it must be our opponent.
+            // Move for enemy snake
             } else {
                 let snake = new_st.board.snakes.get_mut(enemy_id).unwrap();
-                //update state with eaten food
+                // Update state with eaten food
                 let (_, food_eaten) = snake.update_from_move(dir, &st.board.food);
                 if let Some(p) = food_eaten {
                     new_st.board.food.remove(&p);
+                }
+
+                // Deal with head on collisions
+                let our_snake = st.board.snakes.get(self_id).unwrap();
+                if our_snake.body[0] == pos_move {
+                    if our_snake.body.len() > snake.body.len() {
+                        continue;
+                    } else {
+                        return (HEAD_ON, best_move);
+                    }
                 }
 
                 let (val, _) =
@@ -146,11 +163,19 @@ impl AlphaBeta {
                 best_score = min(best_score, val);
                 let new_beta = min(best_score, beta);
 
-                if new_beta <= alpha {
+                if new_beta < alpha {
                     break;
                 }
             }
         }
         (best_score, best_move)
+    }
+
+    fn get_flood_score(&self, st: &State, id: &str) -> (i16) {
+        let s = st.board.snakes.get(id).unwrap();
+        let len = s.body.len() as u16;
+        let flood = s.body[0].flood_fill(s, st, len);
+        let score = flood.len() as i16;
+        return score;
     }
 }
