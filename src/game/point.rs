@@ -76,7 +76,9 @@ impl Point {
     pub fn is_valid(self, s: &Snake, st: &State) -> bool {
         for (id, snake) in &st.board.snakes {
             if self == snake.body[0] && *id != s.id {
-                return snake.body.len() < s.body.len();
+                if snake.body.len() >= s.body.len() {
+                    return false;
+                }
             }
 
             if snake.body.iter().skip(1).any(|p| *p == self) {
@@ -115,6 +117,7 @@ impl Point {
     /// Risky: Empty point, in bounds, larger snake adjacent
     /// Unsafe: Occupied or OOB
     pub fn safety_index(self, s: &Snake, st: &State) -> SafetyIndex {
+        let mut curr = SafetyIndex::Safe;
         for snake in &st.board.snakes {
             if snake.1.body.iter().any(|p| *p == self) {
                 let len = snake.1.body.len();
@@ -129,12 +132,12 @@ impl Point {
                 .iter()
                 .any(|p| p.y == snake.1.body[0].y && p.x == snake.1.body[0].x);
             if snake.0 != &s.id && contains && snake.1.body.len() >= s.body.len() {
-                return SafetyIndex::Risky;
+                curr = SafetyIndex::Risky;
             }
         }
 
         if self.in_bounds(st) {
-            SafetyIndex::Safe
+            return curr;
         } else {
             SafetyIndex::Unsafe
         }

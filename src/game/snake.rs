@@ -109,8 +109,9 @@ impl Snake {
         if collected {
             self.health = 100;
 
-            if let Some(p) = self.body.last() {
-                self.body.push(*p);
+            let last = self.body.last().cloned();
+            if last.is_some() {
+                self.body.push(last.unwrap());
             }
 
             (new_point, Some(new_point))

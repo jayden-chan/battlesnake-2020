@@ -35,5 +35,12 @@ const game = require('fs')
       console.log('ERROR');
       console.log(error);
     }
+
+    await new Promise(resolve => setTimeout(resolve, 100));
   }
+
+  await got.post('http://localhost:9000/end', {
+    body: game[turn+2],
+    responseType: 'json'
+  });
 })();

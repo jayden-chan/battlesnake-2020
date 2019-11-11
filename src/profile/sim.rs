@@ -20,7 +20,7 @@
 
 use log::{debug, info, warn};
 use rayon::prelude::*;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use std::cmp::Ordering;
 use std::time::SystemTime;
@@ -89,7 +89,7 @@ impl Profile for Sim {
                     b.step(&tmp_analytics);
                 });
 
-            if !self.branches.par_iter().any(|b| match b.futures.last() {
+            if !self.branches.iter().any(|b| match b.futures.last() {
                 Some(l) => l.alive && !l.winner,
                 None => true,
             }) {
@@ -296,6 +296,7 @@ impl SimBranch {
         };
 
         let mut results = HashMap::<&str, Point>::with_capacity(moves.len());
+        let mut eaten_foods = HashSet::new();
 
         for (id, dir) in moves {
             if *id == self.self_id {
@@ -312,10 +313,15 @@ impl SimBranch {
                     tmp_future.enemy_foods += 1;
                 }
 
-                self.state.board.food.remove(&p);
+                // self.state.board.food.remove(&p);
+                eaten_foods.insert(p);
             }
 
             results.insert(id, head);
+        }
+
+        for food in &eaten_foods {
+            self.state.board.food.remove(&food);
         }
 
         let mut to_remove = Vec::new();
@@ -326,7 +332,6 @@ impl SimBranch {
             if !head.is_valid(snake, &self.state) || snake.health == 0 {
                 if id == self.self_id {
                     tmp_future.alive = false;
-                    return tmp_future;
                 } else {
                     tmp_future.dead_snakes += 1;
                     to_remove.push(id);
@@ -365,20 +370,3 @@ impl SimBranch {
         self.futures.push(new_future);
     }
 }
-
-// #[cfg(test)]
-// mod tests {
-//     use super::super::super::game::load_sample_data;
-//     use super::*;
-//     use test::Bencher;
-
-//     #[bench]
-//     fn bench_get_move(b: &mut Bencher) {
-//         let (you, state) = &load_sample_data()[0];
-//         let mut sim = Sim::new();
-
-//         sim.init(state, you.id.clone());
-
-//         b.iter(|| sim.get_move(&you, &state));
-//     }
-// }
