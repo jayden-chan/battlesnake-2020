@@ -36,6 +36,9 @@ pub struct AlphaBeta {
 
 impl Profile for AlphaBeta {
     fn get_move(&mut self, s: &Snake, st: &State) -> Dir {
+        if st.board.snakes.len() == 1 {
+            panic!("Cannot initialize AlphaBeta with only 1 snake")
+        };
         let self_id = &s.id;
         let mut enemy_id = String::from("Not Initalized");
         for (pos_id, _) in &st.board.snakes {
