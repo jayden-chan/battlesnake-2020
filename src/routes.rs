@@ -88,10 +88,11 @@ pub fn move_handler(
             this_analytics.update_full_game(buffer);
             profile.update_analytics(this_analytics.matches.clone());
 
-            let dir = if state.board.snakes.len() > 2 {
-                profile.get_move(&you, &state)
-            } else {
+            let dir = if state.board.snakes.len() == 2 {
+                info!("USING ALPHA BETA");
                 alpha_beta.get_move(&you, &state)
+            } else {
+                profile.get_move(&you, &state)
             };
 
             info!("Move: {:?}", dir);
