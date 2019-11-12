@@ -20,6 +20,19 @@ use log::debug;
 
 use super::super::game::{Dir, Snake, State};
 use super::Profile;
+use std::time::SystemTime;
+use id_tree::*;
+
+
+const SIM_TIME_MAX_MILLIS: u128 = 450;
+const WINNING_SCORE: u8 = 1;
+const LOSING_SCORE: u8 = 0;
+
+pub struct MCState {
+    pub state: State,
+    pub score: u16,
+    pub simCount: u16,
+}
 
 #[derive(Copy, Clone)]
 pub struct MonteCarlo {
@@ -28,7 +41,20 @@ pub struct MonteCarlo {
 
 impl Profile for MonteCarlo {
     fn get_move(&mut self, _s: &Snake, _st: &State) -> Dir {
-        Dir::Up
+        let start_time = SystemTime::now();
+        let root = MCState {
+            state: *_st,
+            score: 0,
+            simCount: 0
+        };
+
+        let mut tree: Tree<MCState> = TreeBuilder::new()
+        .with_root(root)
+        .build();
+
+        while start_time.elapsed().unwrap().as_millis() < SIM_TIME_MAX_MILLIS {
+            
+        }
     }
 
     fn get_status(&self) -> String {
