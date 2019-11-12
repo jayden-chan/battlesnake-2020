@@ -16,8 +16,6 @@
  *
  */
 
-//! This module contains the NotSuck algorithm & unit tests
-
 use log::debug;
 
 use super::super::game::{Dir, Snake, State};
