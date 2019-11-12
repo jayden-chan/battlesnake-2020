@@ -20,6 +20,7 @@ mod analytics;
 mod game;
 mod profile;
 mod routes;
+mod simulator;
 
 use log::{error, info};
 use std::collections::HashMap;
