@@ -64,8 +64,6 @@ impl Profile for Aggressive {
     fn get_status(&self) -> String {
         String::from(self.status)
     }
-
-    fn init(&mut self, _st: &State, _self_id: String) {}
 }
 
 impl Aggressive {

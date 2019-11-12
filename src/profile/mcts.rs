@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Jayden Chan. All rights reserved.
+ * Copyright (C) 2019 Jayden Chan, Cobey Hollier. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -16,30 +16,21 @@
  *
  */
 
-//! This module contains the Straight algorithm & unit tests
+//! This module contains the NotSuck algorithm & unit tests
 
 use log::debug;
 
-use super::super::game::{Dir, SafetyIndex, Snake, State};
+use super::super::game::{Dir, Snake, State};
 use super::Profile;
 
-/// The Straight algorithm will go in a straight line until
-/// it's unsafe to do so, at which point it will resort to any
-/// safe move, then keep going straight.
 #[derive(Copy, Clone)]
-pub struct Straight {
+pub struct MonteCarlo {
     status: &'static str,
 }
 
-impl Profile for Straight {
-    fn get_move(&mut self, s: &Snake, st: &State) -> Dir {
-        if let Some(d) = s.body[1].dir_to(s.body[0]) {
-            if d.is_safety_index(&s, &st, &SafetyIndex::Safe) {
-                return d;
-            }
-        }
-
-        s.find_safe_move(&st)
+impl Profile for MonteCarlo {
+    fn get_move(&mut self, _s: &Snake, _st: &State) -> Dir {
+        Dir::Up
     }
 
     fn get_status(&self) -> String {
@@ -47,10 +38,12 @@ impl Profile for Straight {
     }
 }
 
-impl Straight {
+impl MonteCarlo {
     #[allow(dead_code)]
     pub fn new() -> Self {
-        debug!("Straight profile initialized");
-        Self { status: "Straight" }
+        debug!("MonteCarlo profile initialized");
+        Self {
+            status: "MonteCarlo",
+        }
     }
 }

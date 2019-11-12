@@ -22,6 +22,7 @@ mod alpha_beta;
 mod astarbasic;
 mod cautious;
 mod follow;
+mod mcts;
 mod notsuck;
 mod sim;
 mod straight;
@@ -31,6 +32,7 @@ pub use alpha_beta::AlphaBeta;
 pub use astarbasic::AStarBasic;
 pub use cautious::Cautious;
 pub use follow::Follow;
+pub use mcts::MonteCarlo;
 pub use notsuck::NotSuck;
 pub use sim::Sim;
 pub use straight::Straight;
@@ -45,7 +47,7 @@ pub trait Profile {
     ///
     /// Setup the profile with the initial game state
     ///
-    fn init(&mut self, st: &State, self_id: String);
+    fn init(&mut self, _st: &State, _self_id: String) {}
 
     ///
     /// Update the game state and get the next move from the profile
@@ -68,6 +70,7 @@ pub fn string_to_profile(profile: &str) -> Box<dyn Profile> {
         "sim" => Box::new(Sim::new()),
         "straight" => Box::new(Straight::new()),
         "follow" => Box::new(Follow::new()),
+        "monte_carlo" => Box::new(MonteCarlo::new()),
         _ => panic!("Invalid string provided!"),
     }
 }
