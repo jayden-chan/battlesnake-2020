@@ -45,7 +45,7 @@ impl Profile for MonteCarlo {
         let root = MCState {
             state: *_st,
             score: 0,
-            simCount: 0
+            simCount: 0,
         };
 
         let mut tree: Tree<MCState> = TreeBuilder::new()
