@@ -18,14 +18,15 @@
 
 //! This module contains the Sim algorithm & unit tests
 
+use crate::simulator::{process_step, Future};
 use log::{debug, info, warn};
 use rayon::prelude::*;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use std::cmp::Ordering;
 use std::time::SystemTime;
 
-use super::super::game::{Dir, Point, SafetyIndex, Snake, State};
+use super::super::game::{Dir, SafetyIndex, Snake, State};
 use super::{string_to_profile, Profile};
 
 const SIM_TIME_MAX_MILLIS: u128 = 450;
@@ -53,16 +54,6 @@ struct SimBranch {
 unsafe impl Send for SimBranch {}
 unsafe impl Sync for SimBranch {}
 
-#[derive(Debug, PartialEq)]
-struct Future {
-    alive: bool,
-    winner: bool,
-    dead_snakes: u16,
-    foods: u16,
-    enemy_foods: u16,
-    dir: Dir,
-}
-
 impl Profile for Sim {
     fn get_move(&mut self, s: &Snake, st: &State) -> Dir {
         let start_time = SystemTime::now();
@@ -82,7 +73,7 @@ impl Profile for Sim {
             self.branches
                 .par_iter_mut()
                 .filter(|b| match b.futures.last() {
-                    Some(l) => l.alive && !l.winner,
+                    Some(l) => l.alive && !l.finished,
                     None => true,
                 })
                 .for_each(|b| {
@@ -90,7 +81,7 @@ impl Profile for Sim {
                 });
 
             if !self.branches.iter().any(|b| match b.futures.last() {
-                Some(l) => l.alive && !l.winner,
+                Some(l) => l.alive && !l.finished,
                 None => true,
             }) {
                 break;
@@ -241,7 +232,7 @@ impl Sim {
             let mut total = length_score + death_score + food_score;
 
             if let Some(last_future) = branch.futures.last() {
-                if last_future.winner && last_future.alive && future_length < 100 {
+                if last_future.finished && last_future.alive && future_length < 100 {
                     total += (100.0 - future_length as f64) * 5.0;
                 }
             }
@@ -281,73 +272,8 @@ impl SimBranch {
             dirs.insert(id.to_string(), dir);
         }
 
-        let new_future = self.process_step(&dirs);
+        let new_future = process_step(&mut self.state, &self.self_id, &dirs);
         self.futures.push(new_future);
-    }
-
-    fn process_step(&mut self, moves: &HashMap<String, Dir>) -> Future {
-        let mut tmp_future = Future {
-            alive: true,
-            winner: false,
-            dead_snakes: 0,
-            foods: 0,
-            enemy_foods: 0,
-            dir: Dir::Up,
-        };
-
-        let mut results = HashMap::<&str, Point>::with_capacity(moves.len());
-        let mut eaten_foods = HashSet::new();
-
-        for (id, dir) in moves {
-            if *id == self.self_id {
-                tmp_future.dir = *dir;
-            }
-
-            let snake = self.state.board.snakes.get_mut(id).unwrap();
-            let (head, food_eaten) = snake.update_from_move(*dir, &self.state.board.food);
-
-            if let Some(p) = food_eaten {
-                if *id == self.self_id {
-                    tmp_future.foods += 1;
-                } else {
-                    tmp_future.enemy_foods += 1;
-                }
-
-                // self.state.board.food.remove(&p);
-                eaten_foods.insert(p);
-            }
-
-            results.insert(id, head);
-        }
-
-        for food in &eaten_foods {
-            self.state.board.food.remove(&food);
-        }
-
-        let mut to_remove = Vec::new();
-
-        for (id, head) in results {
-            let snake = self.state.board.snakes.get(id).unwrap();
-
-            if !head.is_valid(snake, &self.state) || snake.health == 0 {
-                if id == self.self_id {
-                    tmp_future.alive = false;
-                } else {
-                    tmp_future.dead_snakes += 1;
-                    to_remove.push(id);
-                }
-            }
-        }
-
-        for id in &to_remove {
-            self.state.board.snakes.remove(*id);
-        }
-
-        if !to_remove.is_empty() && self.state.board.snakes.len() == 1 {
-            tmp_future.winner = true;
-        }
-
-        tmp_future
     }
 
     fn step(&mut self, analytics: &HashMap<String, String>) {
@@ -366,7 +292,7 @@ impl SimBranch {
             dirs.insert(id.to_string(), dir);
         }
 
-        let new_future = self.process_step(&dirs);
+        let new_future = process_step(&mut self.state, &self.self_id, &dirs);
         self.futures.push(new_future);
     }
 }
