@@ -50,14 +50,6 @@ impl GameTree {
     }
 
     pub fn get_best_move(&self) -> Dir {
-        self.inner_vec[0]
-            .children
-            .iter()
-            .filter_map(|e| e.map(|e| e))
-            .for_each(|child| {
-                info!("{:#?}", &self.inner_vec[child]);
-            });
-
         let mut scores = self.inner_vec[0]
             .children
             .iter()
@@ -161,10 +153,13 @@ impl GameTree {
         let mut curr = node_id;
 
         // Back-propogate the result of the rollout
-        while self.inner_vec[curr].parent.is_some() {
+        loop {
             self.inner_vec[curr].score += score;
             self.inner_vec[curr].sim_count += 1;
 
+            if self.inner_vec[curr].parent.is_none() {
+                break;
+            }
             curr = self.inner_vec[curr].parent.unwrap();
         }
     }
