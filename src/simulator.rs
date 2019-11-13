@@ -69,6 +69,7 @@ pub fn process_step(
         if !head.is_valid(snake, &st) || snake.health == 0 {
             if id == self_id {
                 tmp_future.alive = false;
+                tmp_future.finished = true;
             } else {
                 tmp_future.dead_snakes += 1;
                 to_remove.push(id);

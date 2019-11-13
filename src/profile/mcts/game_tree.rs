@@ -5,11 +5,13 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::f32;
 
+use log::{debug, info};
 use rand::prelude::*;
 
+#[derive(Debug)]
 struct Node {
     parent: Option<usize>,
-    children: [Option<usize>; 3],
+    children: [Option<usize>; 4],
     score: usize,
     sim_count: usize,
     state: State,
@@ -37,7 +39,7 @@ impl GameTree {
         Self {
             inner_vec: vec![Node {
                 parent: None,
-                children: [None, None, None],
+                children: [None, None, None, None],
                 score: 0,
                 sim_count: 0,
                 future: None,
@@ -48,6 +50,14 @@ impl GameTree {
     }
 
     pub fn get_best_move(&self) -> Dir {
+        self.inner_vec[0]
+            .children
+            .iter()
+            .filter_map(|e| e.map(|e| e))
+            .for_each(|child| {
+                info!("{:#?}", &self.inner_vec[child]);
+            });
+
         let mut scores = self.inner_vec[0]
             .children
             .iter()
@@ -67,6 +77,8 @@ impl GameTree {
             }
         });
 
+        info!("{:#?}", scores);
+
         let self_snake = self.inner_vec[scores[0].1]
             .state
             .board
@@ -78,7 +90,7 @@ impl GameTree {
     }
 
     pub fn node_is_leaf(&self, node_id: usize) -> bool {
-        self.inner_vec[node_id].children[0].is_some()
+        self.inner_vec[node_id].children[0].is_none()
     }
 
     pub fn node_has_sims(&self, node_id: usize) -> bool {
@@ -108,6 +120,8 @@ impl GameTree {
                 Ordering::Equal
             }
         });
+
+        debug!("selecting {}", scores[0].1);
 
         scores[0].1
     }
@@ -159,20 +173,26 @@ impl GameTree {
         let curr_state = self.inner_vec[node_id].state.clone();
         let curr_idx = self.inner_vec.len();
 
-        let self_snake = curr_state.board.snakes.get(&self.self_id).unwrap();
-        let self_successors = get_snake_successors(&self_snake, &curr_state);
+        match curr_state.board.snakes.get(&self.self_id) {
+            None => return None,
+            Some(self_snake) => {
+                let self_successors =
+                    get_snake_successors(&self_snake, &curr_state);
 
-        let mut rng = rand::thread_rng();
+                let mut rng = rand::thread_rng();
 
-        for (idx, dir) in self_successors.iter().enumerate() {
-            self.create_node(node_id, &curr_state, *dir, &mut rng);
-            self.inner_vec[node_id].children[idx] = Some(curr_idx + idx);
+                for (idx, dir) in self_successors.iter().enumerate() {
+                    self.create_node(node_id, &curr_state, *dir, &mut rng);
+                    self.inner_vec[node_id].children[idx] =
+                        Some(curr_idx + idx);
+                }
+
+                return match self_successors.len() {
+                    0 => None,
+                    _ => Some(curr_idx),
+                };
+            }
         }
-
-        return match self_successors.len() {
-            0 => None,
-            _ => Some(curr_idx),
-        };
     }
 
     fn create_node(
@@ -189,7 +209,7 @@ impl GameTree {
 
         self.inner_vec.push(Node {
             parent: Some(parent_id),
-            children: [None, None, None],
+            children: [None, None, None, None],
             score: 0,
             sim_count: 0,
             state: new_state,

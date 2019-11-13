@@ -57,7 +57,7 @@ pub fn start_handler(
 ) -> String {
     let color = match env::var("COLOR") {
         Ok(v) => v,
-        Err(_) => String::from("#DEA584"),
+        Err(_) => String::from("#111111"),
     };
 
     match parse_body(buffer) {
@@ -90,12 +90,7 @@ pub fn move_handler(
             // this_analytics.update_full_game(buffer);
             // profile.update_analytics(this_analytics.matches.clone());
 
-            let dir = if state.board.snakes.len() == 2 {
-                info!("USING ALPHA BETA");
-                alpha_beta.get_move(&you, &state)
-            } else {
-                profile.get_move(&you, &state)
-            };
+            let dir = profile.get_move(&you, &state);
 
             info!("Move: {:?}", dir);
             serde_json::to_string(&dir.as_move()).unwrap()

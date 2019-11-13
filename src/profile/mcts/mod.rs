@@ -52,18 +52,24 @@ impl Profile for MonteCarlo {
 
         // Perform the Monte Carlo tree search until the time is up
         while start_time.elapsed().unwrap().as_millis() < SIM_TIME_MAX_MILLIS {
+            debug!("inside while loop");
             if tree.node_is_leaf(curr) {
+                debug!("node is leaf");
                 if tree.node_has_sims(curr) {
+                    debug!("node has sims");
                     curr = tree.expand(curr).unwrap_or(0);
                 } else {
+                    debug!("node does not have sims");
                     tree.rollout(curr);
                     curr = 0;
                 }
             } else {
+                debug!("node is internal");
                 curr = tree.next_node(curr);
             }
         }
 
+        debug!("returning best move");
         return tree.get_best_move();
     }
 
