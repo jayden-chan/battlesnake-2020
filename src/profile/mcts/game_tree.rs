@@ -123,7 +123,7 @@ impl GameTree {
                     0
                 }
             }
-            None => {
+            _ => {
                 let mut tmp_state = self.inner_vec[node_id].state.clone();
 
                 let mut rng = rand::thread_rng();

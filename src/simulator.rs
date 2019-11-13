@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use crate::game::{Dir, Point, State};
 
-#[derive(Debug, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct Future {
     /// Whether the protagonist snake is still alive
     pub alive: bool,
@@ -18,7 +18,11 @@ pub struct Future {
     pub dir: Dir,
 }
 
-pub fn process_step(st: &mut State, self_id: &str, moves: &HashMap<String, Dir>) -> Future {
+pub fn process_step(
+    st: &mut State,
+    self_id: &str,
+    moves: &HashMap<String, Dir>,
+) -> Future {
     let mut tmp_future = Future {
         alive: true,
         finished: false,

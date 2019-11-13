@@ -54,7 +54,7 @@ impl Profile for MonteCarlo {
         while start_time.elapsed().unwrap().as_millis() < SIM_TIME_MAX_MILLIS {
             if tree.node_is_leaf(curr) {
                 if tree.node_has_sims(curr) {
-                    curr = tree.expand(curr);
+                    curr = tree.expand(curr).unwrap_or(0);
                 } else {
                     tree.rollout(curr);
                     curr = 0;
@@ -79,14 +79,5 @@ impl MonteCarlo {
         Self {
             status: "MonteCarlo",
         }
-    }
-}
-
-fn get_children_dirs(s: &Snake) -> [Dir; 3] {
-    match s.body[0].dir_to(s.body[1]).unwrap() {
-        Dir::Down => [Dir::Up, Dir::Left, Dir::Right],
-        Dir::Up => [Dir::Down, Dir::Left, Dir::Right],
-        Dir::Right => [Dir::Up, Dir::Left, Dir::Down],
-        Dir::Left => [Dir::Up, Dir::Down, Dir::Right],
     }
 }
