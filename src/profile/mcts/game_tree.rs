@@ -13,6 +13,7 @@ struct Node {
     score: usize,
     sim_count: usize,
     state: State,
+    future: Option<Future>,
 }
 
 impl Node {
@@ -39,6 +40,7 @@ impl GameTree {
                 children: [None, None, None],
                 score: 0,
                 sim_count: 0,
+                future: None,
                 state,
             }],
             self_id,
@@ -111,18 +113,33 @@ impl GameTree {
     }
 
     pub fn rollout(&mut self, node_id: usize) {
-        let mut tmp_state = self.inner_vec[node_id].state.clone();
+        let curr_future = self.inner_vec[node_id].future;
 
-        let mut rng = rand::thread_rng();
-        let score = loop {
-            let moves = get_rollout_moves(&self.self_id, &tmp_state, &mut rng);
-            let future = process_step(&mut tmp_state, &self.self_id, &moves);
-
-            if future.finished {
-                if future.alive {
-                    break 1;
+        let score = match curr_future {
+            Some(f) if f.finished => {
+                if f.alive {
+                    1
                 } else {
-                    break 0;
+                    0
+                }
+            }
+            None => {
+                let mut tmp_state = self.inner_vec[node_id].state.clone();
+
+                let mut rng = rand::thread_rng();
+                loop {
+                    let moves =
+                        get_rollout_moves(&self.self_id, &tmp_state, &mut rng);
+                    let future =
+                        process_step(&mut tmp_state, &self.self_id, &moves);
+
+                    if future.finished {
+                        if future.alive {
+                            break 1;
+                        } else {
+                            break 0;
+                        }
+                    }
                 }
             }
         };
@@ -168,7 +185,7 @@ impl GameTree {
         let mut new_state = st.clone();
         let moves =
             get_expansion_moves(&self.self_id, self_move, &new_state, rng);
-        process_step(&mut new_state, &self.self_id, &moves);
+        let future = process_step(&mut new_state, &self.self_id, &moves);
 
         self.inner_vec.push(Node {
             parent: Some(parent_id),
@@ -176,6 +193,7 @@ impl GameTree {
             score: 0,
             sim_count: 0,
             state: new_state,
+            future: Some(future),
         });
     }
 }

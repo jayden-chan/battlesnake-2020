@@ -63,8 +63,10 @@ pub fn start_handler(
     match parse_body(buffer) {
         Ok((you, state)) => {
             profile.init(&state, you.id);
-            let mut new_analytic =
-                Analytics::new(&state, &["cautious", "astarbasic", "aggressive"]);
+            let mut new_analytic = Analytics::new(
+                &state,
+                &["cautious", "astarbasic", "aggressive"],
+            );
             new_analytic.update_full_game(buffer);
             analytics.insert(state.game.id.clone(), new_analytic);
             format!("{{\"color\":\"{}\"}}", color)
@@ -76,17 +78,17 @@ pub fn start_handler(
 /// Handle the /move POST request
 pub fn move_handler(
     buffer: &str,
-    profile: &mut Sim,
+    profile: &mut impl Profile,
     alpha_beta: &mut AlphaBeta,
     analytics: &mut HashMap<String, Analytics>,
 ) -> String {
     match parse_body(buffer) {
         Ok((you, state)) => {
-            let this_analytics = analytics.get_mut(&state.game.id).unwrap();
+            // let this_analytics = analytics.get_mut(&state.game.id).unwrap();
 
-            this_analytics.fire(&you.id, &state);
-            this_analytics.update_full_game(buffer);
-            profile.update_analytics(this_analytics.matches.clone());
+            // this_analytics.fire(&you.id, &state);
+            // this_analytics.update_full_game(buffer);
+            // profile.update_analytics(this_analytics.matches.clone());
 
             let dir = if state.board.snakes.len() == 2 {
                 info!("USING ALPHA BETA");

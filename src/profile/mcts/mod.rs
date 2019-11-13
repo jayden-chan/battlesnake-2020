@@ -30,7 +30,7 @@ use crate::profile::Profile;
 use crate::simulator::{process_step, Future};
 use std::time::SystemTime;
 
-const SIM_TIME_MAX_MILLIS: u128 = 450;
+const SIM_TIME_MAX_MILLIS: u128 = 350;
 const WINNING_SCORE: u8 = 1;
 const LOSING_SCORE: u8 = 0;
 
@@ -54,7 +54,7 @@ impl Profile for MonteCarlo {
         while start_time.elapsed().unwrap().as_millis() < SIM_TIME_MAX_MILLIS {
             if tree.node_is_leaf(curr) {
                 if tree.node_has_sims(curr) {
-                    tree.expand(curr);
+                    curr = tree.expand(curr);
                 } else {
                     tree.rollout(curr);
                     curr = 0;
