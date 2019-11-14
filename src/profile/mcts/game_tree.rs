@@ -217,9 +217,20 @@ impl GameTree {
     }
 
     pub fn expand(&mut self, node_id: usize) -> Option<usize> {
+        match self.inner_vec[node_id].future {
+           Some(future) => {
+               if future.finished {
+                   return None
+               }
+           } 
+           None => ()
+        };
         let curr_state = self.inner_vec[node_id].state.clone();
         let curr_idx = self.inner_vec.len();
-
+        info!(
+            "NODE: {:#?}",
+            curr_state,
+        );
         let is_self_node = !self.inner_vec[node_id].is_self_node;
 
         let node_snake_id = if is_self_node {
