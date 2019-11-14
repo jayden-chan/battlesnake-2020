@@ -32,7 +32,9 @@ pub fn process_step(
         dir: Dir::Up,
     };
 
-    let mut results = HashMap::<&str, Point>::with_capacity(moves.len());
+    st.turn += 1;
+
+    let mut results = HashMap::<String, Point>::with_capacity(moves.len());
     let mut eaten_foods = HashSet::new();
 
     for (id, dir) in moves {
@@ -54,7 +56,13 @@ pub fn process_step(
             eaten_foods.insert(p);
         }
 
-        results.insert(id, head);
+        results.insert(id.to_string(), head);
+    }
+
+    for (id, snake) in &st.board.snakes {
+        if !results.contains_key(id) {
+            results.insert(id.to_string(), snake.body[0]);
+        }
     }
 
     for food in &eaten_foods {
@@ -64,7 +72,7 @@ pub fn process_step(
     let mut to_remove = Vec::new();
 
     for (id, head) in results {
-        let snake = st.board.snakes.get(id).unwrap();
+        let snake = st.board.snakes.get(&id).unwrap();
 
         if !head.is_valid(snake, &st) || snake.health == 0 {
             if id == self_id {
@@ -78,7 +86,7 @@ pub fn process_step(
     }
 
     for id in &to_remove {
-        st.board.snakes.remove(*id);
+        st.board.snakes.remove(id);
     }
 
     if !to_remove.is_empty() && st.board.snakes.len() == 1 {

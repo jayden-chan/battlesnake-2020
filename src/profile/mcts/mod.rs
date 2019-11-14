@@ -20,19 +20,13 @@ mod game_tree;
 
 use game_tree::GameTree;
 
-use indextree::Arena;
-use log::debug;
-use std::collections::HashMap;
-use std::f32;
+use log::{debug, info};
 
 use crate::game::{Dir, Snake, State};
 use crate::profile::Profile;
-use crate::simulator::{process_step, Future};
 use std::time::SystemTime;
 
 const SIM_TIME_MAX_MILLIS: u128 = 350;
-const WINNING_SCORE: u8 = 1;
-const LOSING_SCORE: u8 = 0;
 
 #[derive(Copy, Clone)]
 pub struct MonteCarlo {
@@ -42,7 +36,15 @@ pub struct MonteCarlo {
 impl Profile for MonteCarlo {
     fn get_move(&mut self, s: &Snake, st: &State) -> Dir {
         let start_time = SystemTime::now();
-        let mut tree = GameTree::new(st.clone(), s.id.clone());
+
+        let mut enemy_id = String::from("F");
+        for (pos_id, _) in &st.board.snakes {
+            if *pos_id != s.id {
+                enemy_id = pos_id.to_string();
+            }
+        }
+
+        let mut tree = GameTree::new(st.clone(), s.id.clone(), enemy_id);
 
         let mut curr = match tree.expand(0) {
             Some(id) => id,

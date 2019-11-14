@@ -16,6 +16,7 @@ struct Node {
     sim_count: usize,
     state: State,
     future: Option<Future>,
+    is_self_node: bool,
 }
 
 impl Node {
@@ -32,10 +33,11 @@ impl Node {
 pub struct GameTree {
     inner_vec: Vec<Node>,
     self_id: String,
+    enemy_id: String,
 }
 
 impl GameTree {
-    pub fn new(state: State, self_id: String) -> Self {
+    pub fn new(state: State, self_id: String, enemy_id: String) -> Self {
         Self {
             inner_vec: vec![Node {
                 parent: None,
@@ -44,8 +46,10 @@ impl GameTree {
                 sim_count: 0,
                 future: None,
                 state,
+                is_self_node: false,
             }],
             self_id,
+            enemy_id,
         }
     }
 
@@ -68,8 +72,6 @@ impl GameTree {
                 Ordering::Equal
             }
         });
-
-        info!("{:#?}", scores);
 
         let self_snake = self.inner_vec[scores[0].1]
             .state
@@ -118,21 +120,67 @@ impl GameTree {
         scores[0].1
     }
 
-    pub fn rollout(&mut self, node_id: usize) {
+    fn get_rollout_score(&mut self, node_id: usize) -> usize {
         let curr_future = self.inner_vec[node_id].future;
 
-        let score = match curr_future {
+        match curr_future {
             Some(f) if f.finished => {
                 if f.alive {
-                    1
+                    return 1;
                 } else {
-                    0
+                    return 0;
                 }
             }
             _ => {
                 let mut tmp_state = self.inner_vec[node_id].state.clone();
-
                 let mut rng = rand::thread_rng();
+
+                if self.inner_vec[node_id].is_self_node {
+                    let mut moves = HashMap::new();
+                    let asdfghkl = tmp_state.board.snakes.get(&self.enemy_id);
+                    match asdfghkl {
+                        Some(enemy_snake) => {
+                            moves.insert(
+                                self.enemy_id.clone(),
+                                *get_snake_successors(enemy_snake, &tmp_state)
+                                    .choose(&mut rng)
+                                    .unwrap_or(&Dir::Up),
+                            );
+
+                            let tmp_future = process_step(
+                                &mut tmp_state,
+                                &self.self_id,
+                                &moves,
+                            );
+
+                            if tmp_future.finished {
+                                if tmp_future.alive {
+                                    return 1;
+                                } else {
+                                    return 0;
+                                }
+                            }
+                        }
+                        None => {
+                            let mut curr = node_id;
+                            loop {
+                                info!(
+                                    "NODE: {} STATE: {:#?} FUTURE: {:#?}",
+                                    curr,
+                                    self.inner_vec[curr].state,
+                                    self.inner_vec[curr].future
+                                );
+
+                                if self.inner_vec[curr].parent.is_none() {
+                                    break;
+                                }
+                                curr = self.inner_vec[curr].parent.unwrap();
+                            }
+                            panic!("crashed on none enemy snake");
+                        }
+                    }
+                }
+
                 loop {
                     let moves =
                         get_rollout_moves(&self.self_id, &tmp_state, &mut rng);
@@ -141,16 +189,20 @@ impl GameTree {
 
                     if future.finished {
                         if future.alive {
-                            break 1;
+                            return 1;
                         } else {
-                            break 0;
+                            return 0;
                         }
                     }
                 }
             }
-        };
+        }
+    }
 
+    pub fn rollout(&mut self, node_id: usize) {
         let mut curr = node_id;
+
+        let score = self.get_rollout_score(node_id);
 
         // Back-propogate the result of the rollout
         loop {
@@ -168,21 +220,35 @@ impl GameTree {
         let curr_state = self.inner_vec[node_id].state.clone();
         let curr_idx = self.inner_vec.len();
 
-        match curr_state.board.snakes.get(&self.self_id) {
+        let is_self_node = !self.inner_vec[node_id].is_self_node;
+
+        let node_snake_id = if is_self_node {
+            self.self_id.clone()
+        } else {
+            self.enemy_id.clone()
+        };
+
+        match curr_state.board.snakes.get(&node_snake_id) {
             None => return None,
-            Some(self_snake) => {
-                let self_successors =
-                    get_snake_successors(&self_snake, &curr_state);
+            Some(node_snake) => {
+                let successors = get_snake_successors(&node_snake, &curr_state);
 
                 let mut rng = rand::thread_rng();
 
-                for (idx, dir) in self_successors.iter().enumerate() {
-                    self.create_node(node_id, &curr_state, *dir, &mut rng);
+                for (idx, dir) in successors.iter().enumerate() {
+                    self.create_node(
+                        node_id,
+                        &curr_state,
+                        *dir,
+                        node_snake_id.clone(),
+                        is_self_node,
+                        &mut rng,
+                    );
                     self.inner_vec[node_id].children[idx] =
                         Some(curr_idx + idx);
                 }
 
-                return match self_successors.len() {
+                return match successors.len() {
                     0 => None,
                     _ => Some(curr_idx),
                 };
@@ -194,12 +260,16 @@ impl GameTree {
         &mut self,
         parent_id: usize,
         st: &State,
-        self_move: Dir,
+        node_move: Dir,
+        node_snake_id: String,
+        is_self_node: bool,
         rng: &mut ThreadRng,
     ) {
         let mut new_state = st.clone();
-        let moves =
-            get_expansion_moves(&self.self_id, self_move, &new_state, rng);
+        // let moves =
+        //     get_expansion_moves(node_snake_id, node_move, &new_state, rng);
+        let mut moves = HashMap::new();
+        moves.insert(node_snake_id.clone(), node_move);
         let future = process_step(&mut new_state, &self.self_id, &moves);
 
         self.inner_vec.push(Node {
@@ -209,29 +279,30 @@ impl GameTree {
             sim_count: 0,
             state: new_state,
             future: Some(future),
+            is_self_node,
         });
     }
 }
 
-fn get_expansion_moves(
-    self_id: &str,
-    self_move: Dir,
-    st: &State,
-    rng: &mut ThreadRng,
-) -> HashMap<String, Dir> {
-    let mut dirs = HashMap::<String, Dir>::with_capacity(st.board.snakes.len());
-    for (id, s) in &st.board.snakes {
-        let dir = if *id == self_id {
-            self_move
-        } else {
-            *get_snake_successors(s, st).choose(rng).unwrap_or(&Dir::Up)
-        };
+// fn get_expansion_moves(
+//     self_id: &str,
+//     self_move: Dir,
+//     st: &State,
+//     rng: &mut ThreadRng,
+// ) -> HashMap<String, Dir> {
+//     let mut dirs = HashMap::<String, Dir>::with_capacity(st.board.snakes.len());
+//     for (id, s) in &st.board.snakes {
+//         let dir = if *id == self_id {
+//             self_move
+//         } else {
+//             *get_snake_successors(s, st).choose(rng).unwrap_or(&Dir::Up)
+//         };
 
-        dirs.insert(id.to_string(), dir);
-    }
+//         dirs.insert(id.to_string(), dir);
+//     }
 
-    dirs
-}
+//     dirs
+// }
 
 fn get_rollout_moves(
     self_id: &str,
