@@ -21,17 +21,21 @@ mod game_tree;
 use game_tree::GameTree;
 
 use log::{debug, info};
+use rayon::prelude::*;
 
 use crate::game::{Dir, Snake, State};
 use crate::profile::Profile;
 use std::time::SystemTime;
 
 const SIM_TIME_MAX_MILLIS: u128 = 390;
+const NUM_TREES: usize = 4;
 
 #[derive(Copy, Clone)]
 pub struct MonteCarlo {
     status: &'static str,
 }
+
+type TreeThread = (GameTree, usize);
 
 impl Profile for MonteCarlo {
     fn get_move(&mut self, s: &Snake, st: &State) -> Dir {
@@ -44,29 +48,52 @@ impl Profile for MonteCarlo {
             }
         }
 
-        let mut tree = GameTree::new(st.clone(), s.id.clone(), enemy_id);
+        let mut starter_tree =
+            GameTree::new(st.clone(), s.id.clone(), enemy_id);
 
-        let mut curr = match tree.expand(0) {
+        let curr = match starter_tree.expand(0) {
             Some(id) => id,
             // We're dead, RIP
             None => return Dir::Up,
         };
 
+        let mut trees: Vec<TreeThread> = (0..NUM_TREES)
+            .map(|_| (starter_tree.clone(), curr))
+            .collect();
+
         // Perform the Monte Carlo tree search until the time is up
         while start_time.elapsed().unwrap().as_millis() < SIM_TIME_MAX_MILLIS {
-            if tree.node_is_leaf(curr) {
-                if tree.node_has_sims(curr) {
-                    curr = tree.expand(curr).unwrap_or(0);
+            trees.par_iter_mut().for_each(|(tree, curr)| {
+                if tree.node_is_leaf(*curr) {
+                    if tree.node_has_sims(*curr) {
+                        *curr = tree.expand(*curr).unwrap_or(0);
+                    } else {
+                        tree.rollout(*curr);
+                        *curr = 0;
+                    }
                 } else {
-                    tree.rollout(curr);
-                    curr = 0;
+                    *curr = tree.next_node(*curr);
                 }
-            } else {
-                curr = tree.next_node(curr);
-            }
+            });
         }
 
-        return tree.get_best_move();
+        // Merge the simulated trees
+        let final_scores = trees
+            .iter()
+            .map(|(tree, _)| tree.root_child_scores())
+            .fold(vec![], |acc, t| {
+                let mut tmp_acc = acc;
+                t.iter().enumerate().for_each(|(idx_1, (score, idx_2))| {
+                    if tmp_acc.len() <= idx_1 {
+                        tmp_acc.push((*score, *idx_2));
+                    } else {
+                        tmp_acc[idx_1].0 += score;
+                    }
+                });
+                tmp_acc
+            });
+
+        return starter_tree.get_best_move(final_scores);
     }
 
     fn get_status(&self) -> String {

@@ -8,7 +8,7 @@ use std::f32;
 use log::{debug, info};
 use rand::prelude::*;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 struct Node {
     parent: Option<usize>,
     children: [Option<usize>; 4],
@@ -30,6 +30,7 @@ impl Node {
     }
 }
 
+#[derive(Clone)]
 pub struct GameTree {
     inner_vec: Vec<Node>,
     self_id: String,
@@ -53,16 +54,19 @@ impl GameTree {
         }
     }
 
-    pub fn get_best_move(&self) -> Dir {
-        let mut scores = self.inner_vec[0]
+    pub fn root_child_scores(&self) -> Vec<(usize, usize)> {
+        self.inner_vec[0]
             .children
             .iter()
             .filter_map(|i| match i {
                 Some(e) => Some((self.inner_vec[*e].sim_count, *e)),
                 None => None,
             })
-            .collect::<Vec<(usize, usize)>>();
+            .collect::<Vec<(usize, usize)>>()
+    }
 
+    pub fn get_best_move(&self, scores: Vec<(usize, usize)>) -> Dir {
+        let mut scores = scores;
         scores.sort_by(|a, b| {
             if a.0 > b.0 {
                 Ordering::Less
