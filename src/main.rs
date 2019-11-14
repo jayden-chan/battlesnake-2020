@@ -43,7 +43,7 @@ fn main() {
 
     let port = match env::var("PORT") {
         Ok(v) => v,
-        Err(_) => String::from("9000"),
+        Err(_) => String::from("5000"),
     };
 
     env_logger::init();
