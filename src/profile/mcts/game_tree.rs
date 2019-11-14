@@ -189,7 +189,7 @@ impl GameTree {
 
                     if future.finished {
                         if future.alive {
-                            return 1;
+                            return 2;
                         } else {
                             return 0;
                         }
@@ -265,6 +265,33 @@ impl GameTree {
                 };
             }
         }
+    }
+
+    fn create_terminal_node(
+        &mut self,
+        parent_id: usize,
+        st: &State,
+        node_snake_id: String,
+        is_self_node: bool,
+        rng: &mut ThreadRng,
+    ) {
+        let mut new_state = st.clone();
+
+        let mut moves = HashMap::new();
+        moves.insert(node_snake_id.clone(), Dir::Left);
+        let mut future = process_step(&mut new_state, &self.self_id, &moves);
+        future.finished = true;
+
+
+        self.inner_vec.push(Node {
+            parent: Some(parent_id),
+            children: [None, None, None, None],
+            score: 0,
+            sim_count: 0,
+            state: new_state,
+            future: Some(future),
+            is_self_node,
+        });
     }
 
     fn create_node(
