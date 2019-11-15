@@ -244,7 +244,21 @@ impl GameTree {
                 if p.safety_index(&node_snake, &curr_state)
                     == SafetyIndex::Risky
                 {
-                    self.create_terminal_node(node_id, &curr_state, 0);
+                    let mut moves = HashMap::new();
+                    let enemy_snake =
+                        curr_state.board.snakes.get(&self.enemy_id).unwrap();
+
+                    moves.insert(
+                        self.self_id.clone(),
+                        node_snake.body[0].dir_to(*p).unwrap(),
+                    );
+
+                    moves.insert(
+                        self.enemy_id.clone(),
+                        enemy_snake.body[0].dir_to(*p).unwrap(),
+                    );
+
+                    self.create_terminal_node(node_id, &curr_state, moves, 0);
                     self.inner_vec[node_id].children[term_idx] =
                         Some(curr_idx + term_idx);
                     term_idx += 1;
@@ -259,18 +273,11 @@ impl GameTree {
         &mut self,
         parent_id: usize,
         st: &State,
+        moves: HashMap<String, Dir>,
         score: usize,
     ) {
-        let new_state = st.clone();
-
-        let future = Future {
-            alive: false,
-            finished: true,
-            dead_snakes: 0,
-            foods: 0,
-            enemy_foods: 0,
-            dir: Dir::Up,
-        };
+        let mut new_state = st.clone();
+        let future = process_step(&mut new_state, &self.self_id, &moves);
 
         self.inner_vec.push(Node {
             parent: Some(parent_id),
