@@ -1,4 +1,5 @@
 use crate::game::{Dir, SafetyIndex, Snake, State};
+use crate::profile::{AStarBasic, Profile};
 use crate::simulator::{process_step, Future};
 
 use std::cmp::Ordering;
@@ -35,6 +36,7 @@ pub struct GameTree {
     inner_vec: Vec<Node>,
     self_id: String,
     enemy_id: String,
+    astar: AStarBasic,
 }
 
 impl GameTree {
@@ -51,6 +53,7 @@ impl GameTree {
             }],
             self_id,
             enemy_id,
+            astar: AStarBasic::new(),
         }
     }
 
@@ -164,7 +167,11 @@ impl GameTree {
                 }
 
                 loop {
-                    let moves = get_rollout_moves(&tmp_state, &mut rng);
+                    let moves = get_rollout_moves(
+                        &tmp_state,
+                        &mut rng,
+                        &mut self.astar,
+                    );
                     let future =
                         process_step(&mut tmp_state, &self.self_id, &moves);
 
@@ -301,15 +308,24 @@ impl GameTree {
     }
 }
 
-fn get_rollout_moves(st: &State, rng: &mut ThreadRng) -> HashMap<String, Dir> {
+fn get_rollout_moves(
+    st: &State,
+    rng: &mut ThreadRng,
+    astar: &mut AStarBasic,
+) -> HashMap<String, Dir> {
     let mut dirs = HashMap::<String, Dir>::with_capacity(st.board.snakes.len());
     for (id, s) in &st.board.snakes {
-        dirs.insert(
-            id.to_string(),
-            *get_snake_successors(s, st, false)
-                .choose(rng)
-                .unwrap_or(&Dir::Up),
-        );
+        let rand_num: f32 = rng.gen();
+        if rand_num < 0.2 {
+            dirs.insert(id.to_string(), astar.get_move(s, st));
+        } else {
+            dirs.insert(
+                id.to_string(),
+                *get_snake_successors(s, st, false)
+                    .choose(rng)
+                    .unwrap_or(&Dir::Up),
+            );
+        }
     }
 
     dirs

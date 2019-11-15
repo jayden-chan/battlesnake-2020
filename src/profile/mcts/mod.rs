@@ -28,7 +28,7 @@ use crate::profile::Profile;
 use std::time::SystemTime;
 
 const SIM_TIME_MAX_MILLIS: u128 = 390;
-const NUM_TREES: usize = 4;
+const NUM_TREES: usize = 22;
 
 #[derive(Copy, Clone)]
 pub struct MonteCarlo {
