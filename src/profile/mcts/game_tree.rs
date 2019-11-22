@@ -329,7 +329,7 @@ impl GameTree {
                 format!("Couldn't create {}: {}", display, why.description())
             })
             .and_then(|mut file| {
-                let mut buffer = format!("digraph G {{\n\t0 [shape=record,label=\"root|{{si: {sims}}}\"style=filled,fillcolor=\".7 .3 1.0\"];\n",
+                let mut buffer = format!("digraph GameTree {{\n\t0 [shape=record,label=\"root|{{si: {sims}}}\"style=filled,fillcolor=\".7 .3 1.0\"];\n",
                     sims=self.inner_vec[0].sim_count);
 
                 self.inner_vec.iter().for_each(|node| {
