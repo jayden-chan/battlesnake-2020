@@ -25,6 +25,7 @@ use rayon::prelude::*;
 
 use crate::game::{Dir, Snake, State};
 use crate::profile::Profile;
+use std::path::Path;
 use std::time::SystemTime;
 
 const SIM_TIME_MAX_MILLIS: u128 = 390;
@@ -92,6 +93,10 @@ impl Profile for MonteCarlo {
                 });
                 tmp_acc
             });
+
+        if st.turn == 3 {
+            trees[0].0.write_dot(&Path::new("samples/tree.gv")).unwrap();
+        }
 
         return starter_tree.get_best_move(final_scores);
     }

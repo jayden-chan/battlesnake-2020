@@ -84,10 +84,10 @@ pub fn move_handler(
 ) -> String {
     match parse_body(buffer) {
         Ok((you, state)) => {
-            // let this_analytics = analytics.get_mut(&state.game.id).unwrap();
+            let this_analytics = analytics.get_mut(&state.game.id).unwrap();
 
-            // this_analytics.fire(&you.id, &state);
-            // this_analytics.update_full_game(buffer);
+            this_analytics.fire(&you.id, &state);
+            this_analytics.update_full_game(buffer);
             // profile.update_analytics(this_analytics.matches.clone());
 
             let dir = profile.get_move(&you, &state);

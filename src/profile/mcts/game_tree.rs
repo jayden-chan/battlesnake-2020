@@ -5,9 +5,12 @@ use crate::simulator::{process_step, Future};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::f32;
+use std::{error::Error, fs::File, io::prelude::*, path::Path};
 
 use log::{debug, info};
 use rand::prelude::*;
+
+// The GameTree module stores the MCTS tree inside of a Vec.
 
 #[derive(Clone, Debug)]
 struct Node {
@@ -301,7 +304,8 @@ impl GameTree {
         let mut new_state = st.clone();
         let mut moves = HashMap::new();
         moves.insert(node_snake_id.clone(), node_move);
-        let future = process_step(&mut new_state, &self.self_id, &moves);
+        let mut future = process_step(&mut new_state, &self.self_id, &moves);
+        future.dir = node_move;
 
         self.inner_vec.push(Node {
             parent: Some(parent_id),
@@ -312,6 +316,59 @@ impl GameTree {
             future: Some(future),
             is_self_node,
         });
+    }
+}
+
+impl GameTree {
+    /// Converts the game tree into a DOT file format to be displayed by GraphViz
+    pub fn write_dot(&self, path: &Path) -> Result<(), String> {
+        let display = path.display();
+
+        File::create(path)
+            .map_err(|why| {
+                format!("Couldn't create {}: {}", display, why.description())
+            })
+            .and_then(|mut file| {
+                let mut buffer = format!("digraph G {{\n\t0 [shape=record,label=\"root|{{si: {sims}}}\"style=filled,fillcolor=\".7 .3 1.0\"];\n",
+                    sims=self.inner_vec[0].sim_count);
+
+                self.inner_vec.iter().for_each(|node| {
+                    node.children.iter().filter_map(|c| *c).for_each(|c| {
+                        let node = &self.inner_vec[c];
+                        let dir = node.future.unwrap().dir;
+                        let score = node.score;
+                        let sims = node.sim_count;
+                        let parent = node.parent.unwrap();
+                        let style = if node.is_self_node {
+                            ""
+                        } else {
+                            "style=filled,fillcolor=\"0.1 0.0 0.8\""
+                        };
+
+                        buffer.push('\t');
+                        let node_string = format!("{idx} [shape=record,label=\"{dir:?}|{{sc: {score} |si: {sims}}}\"{style}]\n\t{parent} -> {idx}\n",
+                            idx=c,
+                            dir=dir,
+                            score=score,
+                            sims=sims,
+                            style=style,
+                            parent=parent,
+                        );
+
+                        buffer.push_str(&node_string);
+                    });
+                });
+
+                buffer.push('}');
+
+                file.write_all(buffer.as_bytes()).map_err(|why| {
+                    format!(
+                        "Couldn't create {}: {}",
+                        display,
+                        why.description()
+                    )
+                })
+            })
     }
 }
 
