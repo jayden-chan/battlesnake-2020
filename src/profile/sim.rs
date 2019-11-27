@@ -109,7 +109,7 @@ impl Profile for Sim {
         });
 
         'outer: for (idx, (dir, score, len)) in scores_vec.iter().enumerate() {
-            if dir.is_safety_index(&s, &st, &SafetyIndex::Safe)
+            if dir.is_safety_index(&s, &st, &SafetyIndex::Safe) && !dir.is_corner_risky(&s, &st)
             // && !(!s.body[0].is_outer(&st) && dir.resulting_point(s.body[0]).is_outer(&st))
             {
                 return **dir;
@@ -149,8 +149,15 @@ impl Profile for Sim {
     }
 
     fn init(&mut self, st: &State, self_id: String) {
-        let self_profiles = vec!["astarbasic", "cautious", "straight"];
-        let enemy_profiles = vec!["astarbasic", "cautious", "straight", "aggressive"];
+        let self_profiles = vec![
+            "astarbasic",
+            "cautious",
+            "straight",
+            "aggressive",
+            "notsuck",
+            "follow",
+        ];
+        let enemy_profiles = vec!["astarbasic", "cautious", "aggressive"];
         let prefixes = vec![Dir::Up, Dir::Down, Dir::Left, Dir::Right];
 
         let mut branches = Vec::new();
