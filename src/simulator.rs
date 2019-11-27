@@ -37,6 +37,7 @@ pub fn process_step(
     let mut results = HashMap::<String, Point>::with_capacity(moves.len());
     let mut eaten_foods = HashSet::new();
 
+    // Update the snakes that have moved in this turn
     for (id, dir) in moves {
         if *id == self_id {
             tmp_future.dir = *dir;
@@ -52,25 +53,28 @@ pub fn process_step(
                 tmp_future.enemy_foods += 1;
             }
 
-            // self.st.board.food.remove(&p);
             eaten_foods.insert(p);
         }
 
         results.insert(id.to_string(), head);
     }
 
+    // Fill in the missing snakes that didn't have a move
+    // this turn (only happens with MCTS)
     for (id, snake) in &st.board.snakes {
         if !results.contains_key(id) {
             results.insert(id.to_string(), snake.body[0]);
         }
     }
 
+    // Remove foods
     for food in &eaten_foods {
         st.board.food.remove(&food);
     }
 
     let mut to_remove = Vec::new();
 
+    // Determine which snakes are dead and should be removed
     for (id, head) in results {
         let snake = st.board.snakes.get(&id).unwrap();
 
@@ -89,6 +93,7 @@ pub fn process_step(
         st.board.snakes.remove(id);
     }
 
+    // Check if the game has finished
     if !to_remove.is_empty() && st.board.snakes.len() == 1 {
         tmp_future.finished = true;
     }

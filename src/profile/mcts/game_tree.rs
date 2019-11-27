@@ -1,3 +1,21 @@
+/*
+ * Copyright (C) 2019 Jayden Chan, Cobey Hollier. All rights reserved.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
+ *
+ */
+
 use crate::game::{Dir, SafetyIndex, Snake, State};
 use crate::profile::{AStarBasic, Profile};
 use crate::simulator::{process_step, Future};
@@ -7,6 +25,7 @@ use std::collections::HashMap;
 use std::f32;
 use std::{error::Error, fs::File, io::prelude::*, path::Path};
 
+use arrayvec::ArrayVec;
 use log::{debug, info};
 use rand::prelude::*;
 
@@ -15,7 +34,7 @@ use rand::prelude::*;
 #[derive(Clone, Debug)]
 struct Node {
     parent: Option<usize>,
-    children: [Option<usize>; 4],
+    children: ArrayVec<[usize; 4]>,
     score: usize,
     sim_count: usize,
     state: State,
@@ -40,6 +59,7 @@ pub struct GameTree {
     self_id: String,
     enemy_id: String,
     astar: AStarBasic,
+    analytics: HashMap<String, String>,
 }
 
 impl GameTree {
@@ -47,7 +67,7 @@ impl GameTree {
         Self {
             inner_vec: vec![Node {
                 parent: None,
-                children: [None, None, None, None],
+                children: ArrayVec::new(),
                 score: 0,
                 sim_count: 0,
                 future: None,
@@ -57,6 +77,7 @@ impl GameTree {
             self_id,
             enemy_id,
             astar: AStarBasic::new(),
+            analytics: HashMap::new(),
         }
     }
 
@@ -64,10 +85,7 @@ impl GameTree {
         self.inner_vec[0]
             .children
             .iter()
-            .filter_map(|i| match i {
-                Some(e) => Some((self.inner_vec[*e].sim_count, *e)),
-                None => None,
-            })
+            .map(|e| (self.inner_vec[*e].sim_count, *e))
             .collect::<Vec<(usize, usize)>>()
     }
 
@@ -94,7 +112,7 @@ impl GameTree {
     }
 
     pub fn node_is_leaf(&self, node_id: usize) -> bool {
-        self.inner_vec[node_id].children[0].is_none()
+        self.inner_vec[node_id].children.is_empty()
     }
 
     pub fn node_has_sims(&self, node_id: usize) -> bool {
@@ -103,16 +121,13 @@ impl GameTree {
 
     pub fn next_node(&self, node_id: usize) -> usize {
         let curr_node = &self.inner_vec[node_id];
-        let children = curr_node.children;
+        let children = &curr_node.children;
 
         let N = self.inner_vec[0].sim_count;
 
         let mut scores = children
             .iter()
-            .filter_map(|i| match i {
-                Some(e) => Some((self.inner_vec[*e].ucb_one(N), *e)),
-                None => None,
-            })
+            .map(|e| (self.inner_vec[*e].ucb_one(N), *e))
             .collect::<Vec<(f32, usize)>>();
 
         scores.sort_by(|a, b| {
@@ -238,7 +253,7 @@ impl GameTree {
                 node_snake_id.clone(),
                 is_self_node,
             );
-            self.inner_vec[node_id].children[idx] = Some(curr_idx + idx);
+            self.inner_vec[node_id].children.push(curr_idx + idx);
         }
 
         if is_self_node {
@@ -262,14 +277,13 @@ impl GameTree {
                     );
 
                     self.create_terminal_node(node_id, &curr_state, moves, 0);
-                    self.inner_vec[node_id].children[term_idx] =
-                        Some(curr_idx + term_idx);
+                    self.inner_vec[node_id].children.push(curr_idx + term_idx);
                     term_idx += 1;
                 }
             }
         }
 
-        return self.inner_vec[node_id].children[0];
+        return self.inner_vec[node_id].children.get(0).map(|e| *e);
     }
 
     fn create_terminal_node(
@@ -284,7 +298,7 @@ impl GameTree {
 
         self.inner_vec.push(Node {
             parent: Some(parent_id),
-            children: [None, None, None, None],
+            children: ArrayVec::new(),
             sim_count: 0,
             state: new_state,
             future: Some(future),
@@ -297,19 +311,19 @@ impl GameTree {
         &mut self,
         parent_id: usize,
         st: &State,
-        node_move: Dir,
-        node_snake_id: String,
+        dir: Dir,
+        snake_id: String,
         is_self_node: bool,
     ) {
         let mut new_state = st.clone();
         let mut moves = HashMap::new();
-        moves.insert(node_snake_id.clone(), node_move);
+        moves.insert(snake_id.clone(), dir);
         let mut future = process_step(&mut new_state, &self.self_id, &moves);
-        future.dir = node_move;
+        future.dir = dir;
 
         self.inner_vec.push(Node {
             parent: Some(parent_id),
-            children: [None, None, None, None],
+            children: ArrayVec::new(),
             score: 0,
             sim_count: 0,
             state: new_state,
@@ -333,8 +347,8 @@ impl GameTree {
                     sims=self.inner_vec[0].sim_count);
 
                 self.inner_vec.iter().for_each(|node| {
-                    node.children.iter().filter_map(|c| *c).for_each(|c| {
-                        let node = &self.inner_vec[c];
+                    node.children.iter().for_each(|c| {
+                        let node = &self.inner_vec[*c];
                         let dir = node.future.unwrap().dir;
                         let score = node.score;
                         let sims = node.sim_count;
@@ -380,7 +394,7 @@ fn get_rollout_moves(
     let mut dirs = HashMap::<String, Dir>::with_capacity(st.board.snakes.len());
     for (id, s) in &st.board.snakes {
         let rand_num: f32 = rng.gen();
-        if rand_num < 0.2 {
+        if rand_num < 0.2 && !st.board.food.is_empty() {
             dirs.insert(id.to_string(), astar.get_move(s, st));
         } else {
             dirs.insert(

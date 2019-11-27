@@ -29,9 +29,8 @@ use std::path::Path;
 use std::time::SystemTime;
 
 const SIM_TIME_MAX_MILLIS: u128 = 390;
-const NUM_TREES: usize = 22;
+const NUM_TREES: usize = 4;
 
-#[derive(Copy, Clone)]
 pub struct MonteCarlo {
     status: &'static str,
 }
@@ -97,6 +96,8 @@ impl Profile for MonteCarlo {
         if st.turn == 3 {
             trees[0].0.write_dot(&Path::new("samples/tree.gv")).unwrap();
         }
+
+        info!("{:#?}", final_scores);
 
         return starter_tree.get_best_move(final_scores);
     }

@@ -109,7 +109,8 @@ impl Profile for Sim {
         });
 
         'outer: for (idx, (dir, score, len)) in scores_vec.iter().enumerate() {
-            if dir.is_safety_index(&s, &st, &SafetyIndex::Safe) && !dir.is_corner_risky(&s, &st)
+            if dir.is_safety_index(&s, &st, &SafetyIndex::Safe)
+                && !dir.is_corner_risky(&s, &st)
             // && !(!s.body[0].is_outer(&st) && dir.resulting_point(s.body[0]).is_outer(&st))
             {
                 return **dir;
@@ -117,7 +118,8 @@ impl Profile for Sim {
 
             let mut idx_tmp = idx;
             while idx_tmp + 1 < scores_vec.len() {
-                let (next_best_move, next_bext_score, next_best_len) = scores_vec[idx_tmp + 1];
+                let (next_best_move, next_bext_score, next_best_len) =
+                    scores_vec[idx_tmp + 1];
 
                 if next_best_move.is_safety_index(&s, &st, &SafetyIndex::Safe)
                     && *next_bext_score > **score - (**score / 2.5).abs()
@@ -167,8 +169,12 @@ impl Profile for Sim {
                 for enemy_prefix in &prefixes {
                     for self_prefix in &prefixes {
                         branches.push(SimBranch {
-                            self_controller: super::string_to_profile(self_profile),
-                            enemy_controller: super::string_to_profile(enemy_profile),
+                            self_controller: super::string_to_profile(
+                                self_profile,
+                            ),
+                            enemy_controller: super::string_to_profile(
+                                enemy_profile,
+                            ),
                             self_prefix: *self_prefix,
                             enemy_prefix: *enemy_prefix,
                             state: st.clone(),
@@ -193,7 +199,7 @@ impl Sim {
         Self {
             status: "Sim",
             branches: Vec::new(),
-            analytics: HashMap::<String, String>::new(),
+            analytics: HashMap::new(),
         }
     }
 
@@ -223,12 +229,9 @@ impl Sim {
             let death_score = dead * 30.0;
 
             let food_score = if st.board.snakes.len() == 2
-                && st
-                    .board
-                    .snakes
-                    .iter()
-                    .any(|(id, sn)| *id != s.id && sn.body.len() >= s.body.len() - 2)
-            {
+                && st.board.snakes.iter().any(|(id, sn)| {
+                    *id != s.id && sn.body.len() >= s.body.len() - 2
+                }) {
                 (foods * 300.0)
             } else if st.board.snakes.len() == 1 {
                 0.0
@@ -239,12 +242,17 @@ impl Sim {
             let mut total = length_score + death_score + food_score;
 
             if let Some(last_future) = branch.futures.last() {
-                if last_future.finished && last_future.alive && future_length < 100 {
+                if last_future.finished
+                    && last_future.alive
+                    && future_length < 100
+                {
                     total += (100.0 - future_length as f64) * 5.0;
                 }
             }
 
-            if !s.body[0].is_outer(&st) && dir.resulting_point(s.body[0]).is_outer(&st) {
+            if !s.body[0].is_outer(&st)
+                && dir.resulting_point(s.body[0]).is_outer(&st)
+            {
                 total *= 0.8;
             }
 
@@ -267,7 +275,9 @@ impl Sim {
 
 impl SimBranch {
     fn perform_prefix(&mut self) {
-        let mut dirs = HashMap::<String, Dir>::with_capacity(self.state.board.snakes.len());
+        let mut dirs = HashMap::<String, Dir>::with_capacity(
+            self.state.board.snakes.len(),
+        );
 
         for (id, _) in &self.state.board.snakes {
             let dir = if *id == self.self_id {
