@@ -57,14 +57,16 @@ pub fn start_handler(
 ) -> String {
     let color = match env::var("COLOR") {
         Ok(v) => v,
-        Err(_) => String::from("#DEA584"),
+        Err(_) => String::from("#111111"),
     };
 
     match parse_body(buffer) {
         Ok((you, state)) => {
             profile.init(&state, you.id);
-            let mut new_analytic =
-                Analytics::new(&state, &["cautious", "astarbasic", "aggressive"]);
+            let mut new_analytic = Analytics::new(
+                &state,
+                &["cautious", "astarbasic", "aggressive"],
+            );
             new_analytic.update_full_game(buffer);
             analytics.insert(state.game.id.clone(), new_analytic);
             format!("{{\"color\":\"{}\"}}", color)
@@ -76,7 +78,7 @@ pub fn start_handler(
 /// Handle the /move POST request
 pub fn move_handler(
     buffer: &str,
-    profile: &mut Sim,
+    profile: &mut impl Profile,
     alpha_beta: &mut AlphaBeta,
     analytics: &mut HashMap<String, Analytics>,
 ) -> String {
@@ -86,14 +88,9 @@ pub fn move_handler(
 
             this_analytics.fire(&you.id, &state);
             this_analytics.update_full_game(buffer);
-            profile.update_analytics(this_analytics.matches.clone());
+            // profile.update_analytics(this_analytics.matches.clone());
 
-            let dir = if state.board.snakes.len() == 2 {
-                info!("USING ALPHA BETA");
-                alpha_beta.get_move(&you, &state)
-            } else {
-                profile.get_move(&you, &state)
-            };
+            let dir = profile.get_move(&you, &state);
 
             info!("Move: {:?}", dir);
             serde_json::to_string(&dir.as_move()).unwrap()

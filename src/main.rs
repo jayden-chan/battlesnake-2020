@@ -20,6 +20,7 @@ mod analytics;
 mod game;
 mod profile;
 mod routes;
+mod simulator;
 
 use log::{error, info};
 use std::collections::HashMap;
@@ -31,7 +32,8 @@ use analytics::Analytics;
 
 #[allow(unused_imports)]
 use profile::{
-    AStarBasic, Aggressive, AlphaBeta, Cautious, Follow, NotSuck, Profile, Sim, Straight,
+    AStarBasic, Aggressive, AlphaBeta, Cautious, Follow, MonteCarlo, NotSuck,
+    Profile, Sim, Straight,
 };
 
 fn main() {
@@ -41,13 +43,13 @@ fn main() {
 
     let port = match env::var("PORT") {
         Ok(v) => v,
-        Err(_) => String::from("9000"),
+        Err(_) => String::from("5000"),
     };
 
     env_logger::init();
 
     let server = Server::http(format!("0.0.0.0:{}", port)).unwrap();
-    let mut profile = Sim::new();
+    let mut profile = MonteCarlo::new();
     let mut alpha_beta = AlphaBeta::new();
     let mut analytics_profiles = HashMap::<String, Analytics>::new();
 
@@ -63,7 +65,11 @@ fn main() {
 
         match request.url() {
             "/start" => {
-                let res = routes::start_handler(&content, &mut profile, &mut analytics_profiles);
+                let res = routes::start_handler(
+                    &content,
+                    &mut profile,
+                    &mut analytics_profiles,
+                );
                 response = Response::from_string(res);
             }
             "/move" => {

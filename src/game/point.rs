@@ -88,28 +88,34 @@ impl Point {
 
         self.in_bounds(st)
     }
-    
+
     // Return the number of free spaces visable from the passed point
     //
-    pub fn flood_fill(self, s: &Snake, st: &State, max_size: u16) -> Vec<Point> {
+    pub fn flood_fill(
+        self,
+        s: &Snake,
+        st: &State,
+        max_size: u16,
+    ) -> Vec<Point> {
         let mut visited = vec![self];
         let mut to_visit = vec![self];
 
         while !to_visit.is_empty() {
             let curr = to_visit.pop();
             for p in &curr.unwrap().orthogonal() {
-                if !visited.contains(p) && p.safety_index(s, st) != SafetyIndex::Unsafe {
+                if !visited.contains(p)
+                    && p.safety_index(s, st) != SafetyIndex::Unsafe
+                {
                     visited.push(*p);
                     to_visit.push(*p);
-                }    
+                }
             }
             if visited.len() as u16 > max_size {
                 break;
             }
-        } 
+        }
         visited
     }
-
 
     /// Returns the safety index of self.
     ///
@@ -122,7 +128,9 @@ impl Point {
             if snake.1.body.iter().any(|p| *p == self) {
                 let len = snake.1.body.len();
 
-                if self != snake.1.body[len - 1] || snake.1.body[len - 1] == snake.1.body[len - 2] {
+                if self != snake.1.body[len - 1]
+                    || snake.1.body[len - 1] == snake.1.body[len - 2]
+                {
                     return SafetyIndex::Unsafe;
                 }
             }
@@ -131,7 +139,10 @@ impl Point {
                 .orthogonal()
                 .iter()
                 .any(|p| p.y == snake.1.body[0].y && p.x == snake.1.body[0].x);
-            if snake.0 != &s.id && contains && snake.1.body.len() >= s.body.len() {
+            if snake.0 != &s.id
+                && contains
+                && snake.1.body.len() >= s.body.len()
+            {
                 curr = SafetyIndex::Risky;
             }
         }
@@ -145,12 +156,18 @@ impl Point {
 
     /// Returns whether the point is inside the board
     pub fn in_bounds(self, st: &State) -> bool {
-        self.x < st.board.width && self.x >= 0 && self.y < st.board.height && self.y >= 0
+        self.x < st.board.width
+            && self.x >= 0
+            && self.y < st.board.height
+            && self.y >= 0
     }
 
     /// Returns whther the point is on the outer edge of the board
     pub fn is_outer(self, st: &State) -> bool {
-        self.x == 0 || self.x == st.board.width - 1 || self.y == 0 || self.y == st.board.height - 1
+        self.x == 0
+            || self.x == st.board.width - 1
+            || self.y == 0
+            || self.y == st.board.height - 1
     }
 }
 

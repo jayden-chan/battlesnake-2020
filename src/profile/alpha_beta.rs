@@ -57,8 +57,6 @@ impl Profile for AlphaBeta {
     fn get_status(&self) -> String {
         String::from(self.status)
     }
-
-    fn init(&mut self, _st: &State, _self_id: String) {}
 }
 
 impl AlphaBeta {
@@ -92,7 +90,10 @@ impl AlphaBeta {
         beta: i16,
     ) -> (i16, Point) {
         if depth > MAX_DEPTH {
-            return (2 * self.get_flood_score(&st, self_id) - self.get_flood_score(&st, enemy_id), Point { x: 0, y: 0 });
+            return (
+                2 * self.get_flood_score(&st, self_id) - self.get_flood_score(&st, enemy_id),
+                Point { x: 0, y: 0 },
+            );
         }
         // Set the default score and best move
         let (temp_snake, mut best_score) = if maximizing_player {

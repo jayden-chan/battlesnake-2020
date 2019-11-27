@@ -51,7 +51,12 @@ impl Dir {
     }
 
     /// Tests if the direction is safe to move to
-    pub fn is_safety_index(self, s: &Snake, st: &State, se: &SafetyIndex) -> bool {
+    pub fn is_safety_index(
+        self,
+        s: &Snake,
+        st: &State,
+        se: &SafetyIndex,
+    ) -> bool {
         let head = s.body[0];
         self.resulting_point(head).safety_index(s, st) == *se
     }
@@ -241,14 +246,20 @@ impl Dir {
             }
 
             if snake.body.len() >= s.body.len() {
-                if outer_points[0] == snake.body[0] || outer_points[1] == snake.body[0] {
+                if outer_points[0] == snake.body[0]
+                    || outer_points[1] == snake.body[0]
+                {
                     info!("returning safety_index from corner adj");
-                    return blocker_points[1].safety_index(s, st) == SafetyIndex::Unsafe;
+                    return blocker_points[1].safety_index(s, st)
+                        == SafetyIndex::Unsafe;
                 }
 
-                if outer_points[2] == snake.body[0] || outer_points[3] == snake.body[0] {
+                if outer_points[2] == snake.body[0]
+                    || outer_points[3] == snake.body[0]
+                {
                     info!("returning safety_index from corner adj");
-                    return blocker_points[0].safety_index(s, st) == SafetyIndex::Unsafe;
+                    return blocker_points[0].safety_index(s, st)
+                        == SafetyIndex::Unsafe;
                 }
             }
         }
@@ -318,15 +329,27 @@ mod tests {
             true
         );
         assert_eq!(
-            Dir::Up.is_safety_index(&data.1.board.snakes[ALEX_ID], &data.1, &SafetyIndex::Safe),
+            Dir::Up.is_safety_index(
+                &data.1.board.snakes[ALEX_ID],
+                &data.1,
+                &SafetyIndex::Safe
+            ),
             true
         );
         assert_eq!(
-            Dir::Down.is_safety_index(&data.1.board.snakes[ALEX_ID], &data.1, &SafetyIndex::Safe),
+            Dir::Down.is_safety_index(
+                &data.1.board.snakes[ALEX_ID],
+                &data.1,
+                &SafetyIndex::Safe
+            ),
             true
         );
         assert_eq!(
-            Dir::Left.is_safety_index(&data.1.board.snakes[ALEX_ID], &data.1, &SafetyIndex::Safe),
+            Dir::Left.is_safety_index(
+                &data.1.board.snakes[ALEX_ID],
+                &data.1,
+                &SafetyIndex::Safe
+            ),
             true
         );
         assert_eq!(
@@ -352,51 +375,87 @@ mod tests {
         let data = &load_sample_data()[0];
 
         assert_eq!(
-            Dir::Up.will_collect_food(&data.1.board.snakes[SELF_ID], &data.1.board.food),
+            Dir::Up.will_collect_food(
+                &data.1.board.snakes[SELF_ID],
+                &data.1.board.food
+            ),
             true
         );
         assert_eq!(
-            Dir::Down.will_collect_food(&data.1.board.snakes[SELF_ID], &data.1.board.food),
+            Dir::Down.will_collect_food(
+                &data.1.board.snakes[SELF_ID],
+                &data.1.board.food
+            ),
             false
         );
         assert_eq!(
-            Dir::Left.will_collect_food(&data.1.board.snakes[SELF_ID], &data.1.board.food),
+            Dir::Left.will_collect_food(
+                &data.1.board.snakes[SELF_ID],
+                &data.1.board.food
+            ),
             false
         );
         assert_eq!(
-            Dir::Right.will_collect_food(&data.1.board.snakes[SELF_ID], &data.1.board.food),
+            Dir::Right.will_collect_food(
+                &data.1.board.snakes[SELF_ID],
+                &data.1.board.food
+            ),
             false
         );
         assert_eq!(
-            Dir::Up.will_collect_food(&data.1.board.snakes[ALEX_ID], &data.1.board.food),
+            Dir::Up.will_collect_food(
+                &data.1.board.snakes[ALEX_ID],
+                &data.1.board.food
+            ),
             false
         );
         assert_eq!(
-            Dir::Down.will_collect_food(&data.1.board.snakes[ALEX_ID], &data.1.board.food),
+            Dir::Down.will_collect_food(
+                &data.1.board.snakes[ALEX_ID],
+                &data.1.board.food
+            ),
             false
         );
         assert_eq!(
-            Dir::Left.will_collect_food(&data.1.board.snakes[ALEX_ID], &data.1.board.food),
+            Dir::Left.will_collect_food(
+                &data.1.board.snakes[ALEX_ID],
+                &data.1.board.food
+            ),
             true
         );
         assert_eq!(
-            Dir::Right.will_collect_food(&data.1.board.snakes[ALEX_ID], &data.1.board.food),
+            Dir::Right.will_collect_food(
+                &data.1.board.snakes[ALEX_ID],
+                &data.1.board.food
+            ),
             false
         );
         assert_eq!(
-            Dir::Up.will_collect_food(&data.1.board.snakes[SBOT_ID], &data.1.board.food),
+            Dir::Up.will_collect_food(
+                &data.1.board.snakes[SBOT_ID],
+                &data.1.board.food
+            ),
             true
         );
         assert_eq!(
-            Dir::Down.will_collect_food(&data.1.board.snakes[SBOT_ID], &data.1.board.food),
+            Dir::Down.will_collect_food(
+                &data.1.board.snakes[SBOT_ID],
+                &data.1.board.food
+            ),
             false
         );
         assert_eq!(
-            Dir::Left.will_collect_food(&data.1.board.snakes[SBOT_ID], &data.1.board.food),
+            Dir::Left.will_collect_food(
+                &data.1.board.snakes[SBOT_ID],
+                &data.1.board.food
+            ),
             false
         );
         assert_eq!(
-            Dir::Right.will_collect_food(&data.1.board.snakes[SBOT_ID], &data.1.board.food),
+            Dir::Right.will_collect_food(
+                &data.1.board.snakes[SBOT_ID],
+                &data.1.board.food
+            ),
             false
         );
     }

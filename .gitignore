@@ -3,3 +3,4 @@
 *.swp
 samples/*.txt
 node_modules
+samples/tree.gv
